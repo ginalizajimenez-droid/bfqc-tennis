@@ -203,8 +203,15 @@ button:active{opacity:.82;}
       <h2 class="page-title">📋 Court Schedule</h2>
       <p class="page-sub">Approved reservations only. No personal info shown.</p>
       <div class="card card-mb">
-        <input type="date" id="schedDateInput" onchange="renderSchedule()"/>
+        <div class="flex gap-10" style="align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;">
+            <label class="field-label">Select Date</label>
+            <input type="date" id="schedDateInput" onchange="renderSchedule()"/>
+          </div>
+          <button class="btn-blue btn-sm" onclick="refreshScheduleData()" style="white-space:nowrap;margin-bottom:1px;">🔄 Refresh</button>
+        </div>
         <div id="schedDateLabel" style="margin-top:8px;font-size:13px;font-weight:500;color:var(--blue);"></div>
+        <div id="schedLastUpdated" style="font-size:11px;color:var(--text-faint);margin-top:4px;"></div>
       </div>
       <div class="legend" id="schedLegend"></div>
       <div class="card" id="schedTimeline" style="margin-bottom:24px;"></div>
@@ -238,7 +245,7 @@ button:active{opacity:.82;}
 // ═══════════════════════════════════════════════════════════════
 //  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyiK4k1t3vyXJjJMUaCze8L7XWKHXq_T_IT-O0NDyuQeA-hweXYM5WnmYrPdRzHVbK-/exec";
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
 // ═══════════════════════════════════════════════════════════════
 
@@ -423,7 +430,11 @@ function navTo(id){
   document.getElementById("hamburgerBtn").textContent="☰";
   buildNav();
   if(id==="book")renderBook();
-  if(id==="schedule")renderSchedule();
+  if(id==="schedule"){
+    renderSchedule();
+    // Also silently refresh data from Google Sheets
+    refreshScheduleData();
+  }
   if(id==="admin")renderAdmin();
   if(id==="check"){document.getElementById("checkCodeInput").value="";document.getElementById("checkMsg").textContent="";document.getElementById("checkResult").innerHTML="";}
   window.scrollTo(0,0);
@@ -701,6 +712,9 @@ function renderSchedule(){
           ${t?`<span style="color:${t.color};">${t.icon} ${res.type}</span>`:`<span style="color:var(--text-faint);font-size:11px;">Available</span>`}
         </div></div>`;
     }).join("");
+    // Show last updated time
+    const lu=document.getElementById("schedLastUpdated");
+    if(lu) lu.textContent="Last updated: "+nowStr();
   }
 }
 
@@ -799,6 +813,26 @@ function emptyCard(msg){return`<div class="card"><div style="text-align:center;p
 function adminLogin(){const pw=document.getElementById("adminPwInput").value;if(pw===ADMIN_PASSWORD){adminLoggedIn=true;adminTab="dashboard";renderAdmin();}else{document.getElementById("adminLoginErr").textContent="❌ Incorrect password.";}}
 function adminLogout(){adminLoggedIn=false;renderAdmin();}
 function setAdminTab(t){adminTab=t;renderAdmin();}
+
+async function refreshScheduleData(){
+  // Silent background refresh for public schedule page
+  try{
+    const data = await apiCall("getAll");
+    reservations=(data.reservations||[]).map(r=>({
+      ...r,
+      id:Number(r.id),
+      hours:Number(r.hours),
+      paid:r.paid===true||r.paid==="TRUE"||r.paid==="true",
+      date:normalizeDateStr(r.date),
+    }));
+    blockedDates=data.blockedDates||[];
+    buildNav();
+    renderSchedule(); // re-render with fresh data
+  }catch(e){
+    // fail silently for public users
+    console.warn("Schedule refresh failed:", e.message);
+  }
+}
 
 async function refreshData(){
   showToast("Refreshing data...");
