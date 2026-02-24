@@ -238,7 +238,7 @@ button:active{opacity:.82;}
 // ═══════════════════════════════════════════════════════════════
 //  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx7Y6F2SdmyGau5SybVYVIK0ivYdv-IB-oa0-efUV1TTMyyskNgemdzHS15G2zAGFOt/exec";
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
 // ═══════════════════════════════════════════════════════════════
 
@@ -259,19 +259,66 @@ const NAV = [{id:"home",label:"🏠 Home"},{id:"book",label:"📅 Book"},{id:"sc
 // ── State ─────────────────────────────────────────────────────
 let reservations=[], blockedDates=[], currentView="home";
 let adminLoggedIn=false, adminTab="dashboard";
-let adminMonth=new Date().toISOString().slice(0,7);
+let adminMonth=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Manila"}).slice(0,7);
 let bookDate=todayStr(), bookType=null, bookPayment=null, startSlot=null, endSlot=null;
 let weekStart=getWeekStart(new Date());
 let charts={}, isSaving=false;
 
 // ── Helpers ───────────────────────────────────────────────────
-function todayStr(){return new Date().toISOString().split("T")[0];}
-function maxDateStr(){return new Date(Date.now()+60*86400000).toISOString().split("T")[0];}
-function parseLocalDate(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function todayStr(){
+  return new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Manila"});
+  // en-CA gives YYYY-MM-DD format, with PH timezone
+}
+function maxDateStr(){
+  return new Date(Date.now()+60*86400000).toLocaleDateString("en-CA",{timeZone:"Asia/Manila"});
+}
+function parseLocalDate(s){
+  if(!s) return new Date();
+  // Handle Google Sheets date serial number (number)
+  if(typeof s === "number"){
+    // Google Sheets epoch starts Dec 30, 1899
+    const msPerDay = 86400000;
+    return new Date(Date.UTC(1899,11,30) + s * msPerDay);
+  }
+  const str = String(s).trim();
+  // Format: YYYY-MM-DD (our standard)
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)){
+    const[y,m,d]=str.split("-").map(Number);
+    return new Date(y,m-1,d);
+  }
+  // Format: M/D/YYYY or MM/DD/YYYY (Google Sheets default)
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)){
+    const[m,d,y]=str.split("/").map(Number);
+    return new Date(y,m-1,d);
+  }
+  // Format: YYYY/MM/DD
+  if(/^\d{4}\/\d{2}\/\d{2}$/.test(str)){
+    const[y,m,d]=str.split("/").map(Number);
+    return new Date(y,m-1,d);
+  }
+  // Fallback: try native parse
+  const dt = new Date(str);
+  return isNaN(dt) ? new Date() : dt;
+}
+function normalizeDateStr(s){
+  // Always convert to YYYY-MM-DD for consistent comparisons
+  if(!s) return "";
+  const str = String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)) return str; // already correct
+  const d = parseLocalDate(str);
+  if(isNaN(d)) return str;
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
 function displayDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});}
 function shortDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});}
 function genCode(){return Math.random().toString(36).substring(2,8).toUpperCase();}
-function nowStr(){return new Date().toLocaleString("en-PH",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});}
+function nowStr(){
+  return new Date().toLocaleString("en-PH",{
+    timeZone:"Asia/Manila",
+    year:"numeric",month:"short",day:"numeric",
+    hour:"2-digit",minute:"2-digit",hour12:true
+  });
+}
 function slotIdx(s){return TIME_SLOTS.indexOf(s);}
 function endSlotLabel(start,hrs){const i=slotIdx(start)+hrs;return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
 function totalPrice(type,hrs){return TYPES[type].price*hrs;}
@@ -757,7 +804,13 @@ async function refreshData(){
   showToast("Refreshing data...");
   try{
     const data=await apiCall("getAll");
-    reservations=(data.reservations||[]).map(r=>({...r,id:Number(r.id),hours:Number(r.hours),paid:r.paid===true||r.paid==="TRUE"||r.paid==="true"}));
+    reservations=(data.reservations||[]).map(r=>({
+      ...r,
+      id:Number(r.id),
+      hours:Number(r.hours),
+      paid:r.paid===true||r.paid==="TRUE"||r.paid==="true",
+      date:normalizeDateStr(r.date),
+    }));
     blockedDates=data.blockedDates||[];
     buildNav();renderAdmin();showToast("Data refreshed!");
   }catch(e){showToast("Refresh failed: "+e.message,true);}
