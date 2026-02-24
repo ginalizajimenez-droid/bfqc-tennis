@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BFQC Tennis Club – Court Reservation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --page-bg:#daeef9;--card:#fff;--card-border:#b3ddf7;--shadow:0 2px 12px rgba(2,119,189,.09);
+  --green:#2e7d32;--green-mid:#43a047;--green-light:#e8f5e9;
+  --blue:#0277bd;--blue-mid:#0288d1;--blue-light:#e1f5fe;
+  --text:#1a2a3a;--text-mid:#37474f;--text-muted:#607d8b;--text-faint:#b0bec5;
+  --danger:#c62828;--danger-bg:#ffebee;--danger-border:#ef9a9a;
+  --warning:#e65100;--warning-bg:#fff3e0;--warning-border:#ffcc80;
+  --purple:#6a1b9a;--purple-bg:#f3e5f5;--purple-border:#ce93d8;
+}
+body{background:var(--page-bg);font-family:'Lato','Georgia',serif;color:var(--text);min-height:100vh;}
+header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#0277bd 0%,#01579b 60%,#1b5e20 100%);box-shadow:0 2px 16px rgba(2,119,189,.2);}
+.header-inner{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-logo{width:46px;height:46px;border-radius:50%;background:white;padding:3px;object-fit:contain;box-shadow:0 0 10px rgba(255,255,255,.25);}
+.brand-text .name{font-size:16px;font-weight:700;color:white;letter-spacing:1px;}
+.brand-text .sub{font-size:9px;color:rgba(255,255,255,.75);letter-spacing:2px;text-transform:uppercase;}
+nav.desktop{display:flex;gap:2px;}
+nav.desktop button{background:transparent;border:1px solid transparent;color:white;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .2s;position:relative;}
+nav.desktop button.active{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.5);font-weight:700;}
+.pending-badge{position:absolute;top:2px;right:2px;background:#ef5350;color:white;border-radius:50%;width:16px;height:16px;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.hamburger{display:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;padding:7px 11px;border-radius:6px;cursor:pointer;font-size:18px;}
+.mobile-nav{display:none;background:#01579b;border-top:1px solid rgba(255,255,255,.15);padding:8px 14px 12px;}
+.mobile-nav button{display:block;width:100%;text-align:left;background:transparent;border:none;border-radius:8px;color:white;padding:11px 14px;cursor:pointer;font-size:14px;font-family:inherit;margin-bottom:2px;}
+.mobile-nav button.active{background:rgba(255,255,255,.15);font-weight:700;}
+main{max-width:980px;margin:0 auto;padding:28px 14px 60px;}
+.page{display:none;}.page.active{display:block;}
+.page-wrap{max-width:640px;margin:0 auto;}
+.page-title{color:var(--blue);font-size:22px;margin-bottom:4px;font-style:italic;}
+.page-sub{color:var(--text-muted);font-size:13px;margin-bottom:22px;}
+.card{background:var(--card);border:1.5px solid var(--card-border);border-radius:14px;padding:18px;box-shadow:var(--shadow);}
+.card-mb{margin-bottom:12px;}
+.sec-title{color:var(--blue);font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin-bottom:12px;padding-bottom:7px;border-bottom:1.5px solid #b3ddf7;}
+input[type=text],input[type=date],input[type=month],input[type=password],input[type=tel],input[type=email],input[type=number],select{width:100%;padding:11px 14px;border-radius:8px;background:white;border:1.5px solid var(--card-border);color:var(--text);font-size:14px;font-family:inherit;box-shadow:inset 0 1px 3px rgba(0,0,0,.04);outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:#0288d1;box-shadow:0 0 0 3px rgba(2,136,209,.12);}
+label.field-label{display:block;color:var(--text-mid);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;font-weight:700;}
+.field{margin-bottom:13px;}.req{color:var(--danger);}
+.btn-green{background:linear-gradient(135deg,#43a047,#2e7d32);border:none;color:white;padding:12px 22px;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;box-shadow:0 3px 10px rgba(46,125,50,.22);}
+.btn-blue{background:linear-gradient(135deg,#0288d1,#0277bd);border:none;color:white;padding:12px 22px;border-radius:8px;cursor:pointer;font-size:14px;font-family:inherit;box-shadow:0 3px 10px rgba(2,119,189,.2);}
+.btn-outline{background:white;border:1.5px solid var(--card-border);color:var(--text-muted);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.btn-danger{background:var(--danger-bg);border:1.5px solid var(--danger-border);color:var(--danger);padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;}
+.btn-purple{background:linear-gradient(135deg,#8e24aa,#6a1b9a);border:none;color:white;padding:10px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;}
+.btn-sm{padding:8px 14px;font-size:12px;}
+button:active{opacity:.82;}
+.slot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;}
+.slot-btn{padding:9px 4px;border-radius:7px;font-size:11px;font-family:inherit;text-align:center;cursor:pointer;background:white;border:1.5px solid var(--card-border);color:var(--text-mid);transition:all .12s;}
+.slot-btn.blocked{background:#f5f5f5;border-color:#e0e0e0;color:var(--text-faint);text-decoration:line-through;cursor:not-allowed;}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.type-btn{padding:14px 6px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:center;background:#f8fbff;border:1.5px solid var(--card-border);color:var(--text-muted);transition:all .15s;}
+.badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--card-border),transparent);margin:14px 0;}
+.info-row{display:flex;gap:10px;margin-bottom:9px;align-items:flex-start;}
+.info-lbl{color:var(--text-muted);min-width:80px;font-size:11px;padding-top:2px;flex-shrink:0;}
+.info-val{color:var(--text);font-size:13px;flex:1;font-weight:500;}
+.alert-error{background:var(--danger-bg);border:1px solid var(--danger-border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--danger);margin-bottom:12px;}
+.slot-hint{padding:9px 12px;background:var(--blue-light);border-radius:7px;font-size:12px;color:var(--blue);border:1px solid #b3ddf7;margin-top:8px;}
+.code-box{background:linear-gradient(135deg,#e8f5e9,#e1f5fe);border:2px solid #43a047;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px;}
+.code-lbl{font-size:10px;color:#2e7d32;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}
+.code-val{font-family:'Cinzel',serif;font-size:26px;letter-spacing:8px;color:#1b5e20;font-weight:700;}
+.timeline-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f7ff;}
+.timeline-row:last-child{border-bottom:none;}
+.timeline-slot{width:68px;font-size:12px;color:var(--text-muted);font-weight:500;flex-shrink:0;}
+.timeline-bar{flex:1;height:28px;border-radius:6px;background:#f8fbff;border:1px solid #e8f0fe;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:700;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;align-items:center;margin-bottom:14px;}
+.legend-dot{width:12px;height:12px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:middle;}
+.admin-card-info{background:var(--blue-light);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;border:1px solid #b3ddf7;}
+.monthly-res-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:6px;flex-wrap:wrap;}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;text-align:center;}
+.summary-item{background:white;border-radius:10px;padding:12px 8px;box-shadow:var(--shadow);}
+.summary-val{font-size:17px;font-weight:700;}.summary-lbl{color:var(--text-muted);font-size:11px;margin-top:3px;}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;}
+.info-card{border-radius:12px;padding:16px 12px;box-shadow:0 2px 8px rgba(0,0,0,.05);text-align:center;}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.pricing-card{border-radius:12px;padding:16px 12px;text-align:center;}
+.flex{display:flex;}.flex-wrap{flex-wrap:wrap;}.gap-8{gap:8px;}.gap-10{gap:10px;}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;}
+.dash-stat{background:white;border-radius:12px;padding:16px;text-align:center;box-shadow:var(--shadow);border:1.5px solid var(--card-border);}
+.dash-stat-val{font-size:26px;font-weight:700;font-family:'Cinzel',serif;}
+.dash-stat-lbl{font-size:11px;color:var(--text-muted);margin-top:4px;}
+.chart-wrap{background:white;border-radius:12px;padding:18px;box-shadow:var(--shadow);border:1.5px solid var(--card-border);margin-bottom:16px;}
+.chart-title{color:var(--blue);font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:14px;}
+.week-grid{display:grid;grid-template-columns:60px repeat(7,1fr);border:1.5px solid var(--card-border);border-radius:12px;overflow:hidden;background:white;}
+.week-header{background:linear-gradient(135deg,#0277bd,#01579b);color:white;padding:8px 4px;text-align:center;font-size:11px;font-weight:700;}
+.week-time{background:#f8fbff;border-right:1px solid var(--card-border);border-bottom:1px solid #f0f7ff;padding:6px 4px;text-align:center;font-size:10px;color:var(--text-muted);}
+.week-cell{border-right:1px solid #f0f7ff;border-bottom:1px solid #f0f7ff;min-height:32px;position:relative;padding:2px;}
+.week-cell:last-child{border-right:none;}
+.week-event{border-radius:4px;padding:2px 4px;font-size:9px;font-weight:700;margin-bottom:1px;line-height:1.3;}
+
+/* Loading overlay */
+#loadingOverlay{position:fixed;inset:0;background:rgba(218,238,249,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+.spinner{width:48px;height:48px;border:4px solid #b3ddf7;border-top-color:#0277bd;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loadingOverlay p{color:var(--blue);font-size:15px;font-weight:500;}
+
+/* Config banner */
+#configBanner{background:#fff3e0;border:2px solid #ffcc80;border-radius:12px;padding:20px;margin-bottom:20px;display:none;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--green);color:white;padding:13px 22px;border-radius:12px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.15);display:none;align-items:center;gap:12px;max-width:90vw;}
+
+@media(max-width:600px){
+  nav.desktop{display:none;}.hamburger{display:block;}
+  .slot-grid{grid-template-columns:repeat(4,1fr);}
+  .week-grid{grid-template-columns:50px repeat(7,1fr);}
+}
+@media print{header,#toast,.no-print{display:none!important;}body{background:white;}.card{box-shadow:none;border:1px solid #ddd;}}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <p>Connecting to Google Sheets...</p>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <img class="brand-logo" src="https://i.imgur.com/YOUR_LOGO.png" alt="BFQC"
+           id="headerLogo" onerror="this.style.display='none'"/>
+      <div class="brand-text">
+        <div class="name">BFQC Tennis Club</div>
+        <div class="sub">Court Reservation System</div>
+      </div>
+    </div>
+    <nav class="desktop" id="desktopNav"></nav>
+    <button class="hamburger" id="hamburgerBtn">☰</button>
+  </div>
+  <div class="mobile-nav" id="mobileNav"></div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div style="text-align:center;max-width:720px;margin:0 auto;">
+      <img id="homeLogo" src="https://i.imgur.com/YOUR_LOGO.png" alt="BFQC"
+        style="width:130px;height:130px;object-fit:contain;border-radius:50%;background:white;padding:8px;box-shadow:0 4px 24px rgba(2,119,189,.18);margin-bottom:20px;"
+        onerror="this.style.display='none'"/>
+      <h1 style="font-size:30px;color:var(--blue);font-style:italic;letter-spacing:1px;margin-bottom:6px;">BFQC Tennis Club</h1>
+      <p style="color:var(--text-mid);font-size:15px;margin-bottom:4px;">Court Reservation System</p>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:30px;">No account needed &middot; Book up to 60 days ahead &middot; 6:00 AM &ndash; 10:00 PM</p>
+      <div class="info-grid">
+        <div class="info-card" style="background:#e1f5fe;border:1.5px solid #81d4fa33;"><div style="font-size:24px;margin-bottom:8px;">🕐</div><div style="font-weight:700;font-size:13px;color:#0277bd;margin-bottom:5px;">Operating Hours</div><div style="font-size:12px;line-height:1.5;color:var(--text-mid);">6:00 AM &ndash; 10:00 PM daily</div></div>
+        <div class="info-card" style="background:#e8f5e9;border:1.5px solid #a5d6a733;"><div style="font-size:24px;margin-bottom:8px;">📞</div><div style="font-weight:700;font-size:13px;color:#2e7d32;margin-bottom:5px;">Contact Us</div><div style="font-size:12px;line-height:1.5;color:var(--text-mid);">09665340188</div></div>
+        <div class="info-card" style="background:#f3e5f5;border:1.5px solid #ce93d833;"><div style="font-size:24px;margin-bottom:8px;">✅</div><div style="font-weight:700;font-size:13px;color:#6a1b9a;margin-bottom:5px;">Admin Approval</div><div style="font-size:12px;line-height:1.5;color:var(--text-mid);">Reviewed before confirmation</div></div>
+        <div class="info-card" style="background:#fff3e0;border:1.5px solid #ffcc8033;"><div style="font-size:24px;margin-bottom:8px;">📄</div><div style="font-weight:700;font-size:13px;color:#e65100;margin-bottom:5px;">Receipt</div><div style="font-size:12px;line-height:1.5;color:var(--text-mid);">Download after every booking</div></div>
+      </div>
+      <div class="card" style="margin-bottom:24px;text-align:left;">
+        <div class="sec-title">Court Rates (per hour)</div>
+        <div class="pricing-grid">
+          <div class="pricing-card" style="background:#e1f5fe;border:1.5px solid #81d4fa;"><div style="font-size:24px;margin-bottom:6px;">🧍</div><div style="font-weight:700;font-size:14px;color:#0277bd;margin-bottom:4px;">Singles</div><div style="font-size:22px;font-weight:700;">&#8369;300</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
+          <div class="pricing-card" style="background:#fff3e0;border:1.5px solid #ffcc80;"><div style="font-size:24px;margin-bottom:6px;">👥</div><div style="font-weight:700;font-size:14px;color:#e65100;margin-bottom:4px;">Doubles</div><div style="font-size:22px;font-weight:700;">&#8369;480</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
+          <div class="pricing-card" style="background:#f3e5f5;border:1.5px solid #ce93d8;"><div style="font-size:24px;margin-bottom:6px;">🎓</div><div style="font-weight:700;font-size:14px;color:#6a1b9a;margin-bottom:4px;">Training</div><div style="font-size:22px;font-weight:700;">&#8369;480</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
+        </div>
+      </div>
+      <div class="flex gap-10" style="justify-content:center;flex-wrap:wrap;">
+        <button class="btn-green" style="padding:13px 28px;font-size:15px;" onclick="navTo('book')">🎾 Book a Court &rarr;</button>
+        <button class="btn-blue" style="padding:13px 20px;" onclick="navTo('schedule')">📋 View Schedule</button>
+        <button class="btn-outline" style="padding:13px 20px;" onclick="navTo('check')">🔍 Check My Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOK -->
+  <div class="page" id="page-book">
+    <div class="page-wrap">
+      <h2 class="page-title">📅 Book a Court</h2>
+      <p class="page-sub">Select date &middot; type &middot; time &middot; payment &middot; fill details &middot; confirm.</p>
+      <div id="bookContent"></div>
+    </div>
+  </div>
+
+  <!-- CHECK -->
+  <div class="page" id="page-check">
+    <div class="page-wrap">
+      <h2 class="page-title">🔍 Check My Booking</h2>
+      <p class="page-sub">Enter your 6-character code to see your booking status.</p>
+      <div class="card card-mb">
+        <div class="flex gap-10">
+          <input type="text" id="checkCodeInput" placeholder="e.g. AB12CD"
+            style="flex:1;letter-spacing:4px;text-transform:uppercase;font-size:16px;text-align:center;"
+            onkeydown="if(event.key==='Enter')checkStatus()"/>
+          <button class="btn-green" onclick="checkStatus()">Check</button>
+        </div>
+        <div id="checkMsg" style="margin-top:10px;font-size:13px;"></div>
+      </div>
+      <div id="checkResult"></div>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="page" id="page-schedule">
+    <div class="page-wrap">
+      <h2 class="page-title">📋 Court Schedule</h2>
+      <p class="page-sub">Approved reservations only. No personal info shown.</p>
+      <div class="card card-mb">
+        <input type="date" id="schedDateInput" onchange="renderSchedule()"/>
+        <div id="schedDateLabel" style="margin-top:8px;font-size:13px;font-weight:500;color:var(--blue);"></div>
+      </div>
+      <div class="legend" id="schedLegend"></div>
+      <div class="card" id="schedTimeline" style="margin-bottom:24px;"></div>
+      <div class="card">
+        <div class="sec-title">Cancel a Reservation</div>
+        <p style="color:var(--text-muted);font-size:12px;margin-bottom:12px;">Cancellations allowed <strong>at least 24 hours</strong> before your booking.</p>
+        <div class="flex gap-10">
+          <input type="text" id="cancelCodeInput" placeholder="e.g. AB12CD" style="flex:1;letter-spacing:4px;text-transform:uppercase;text-align:center;"/>
+          <button class="btn-danger" onclick="handleCancel()">Cancel</button>
+        </div>
+        <div id="cancelMsg" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="page" id="page-admin">
+    <div style="max-width:980px;margin:0 auto;">
+      <h2 class="page-title">🔑 Admin Panel</h2>
+      <div id="adminContent"></div>
+    </div>
+  </div>
+</main>
+
+<div id="toast">
+  <span>✅</span><span id="toastMsg"></span>
+  <button onclick="hideToast()" style="background:none;border:none;color:white;cursor:pointer;font-size:18px;margin-left:8px;">×</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
+// ═══════════════════════════════════════════════════════════════
+const SCRIPT_URL = "https://script.google.com/u/0/home/projects/1OsToY3kBwIWS-Enmp9YTlVQDJDbu8jVeUmFK7sNB8qbVmSJnDTpYxHdz/edit";
+// Example: "https://script.google.com/macros/s/AKfycb.../exec"
+// ═══════════════════════════════════════════════════════════════
+
+const ADMIN_PASSWORD = "bfqc2024";
+const CONTACT = "09665340188";
+const TIME_SLOTS = ["6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM"];
+const TYPES = {
+  Singles:  {color:"#0277bd",bg:"#e1f5fe",border:"#81d4fa",icon:"🧍",price:300},
+  Doubles:  {color:"#e65100",bg:"#fff3e0",border:"#ffcc80",icon:"👥",price:480},
+  Training: {color:"#6a1b9a",bg:"#f3e5f5",border:"#ce93d8",icon:"🎓",price:480},
+};
+const PAYMENT_METHODS = {
+  gcash: {label:"GCash",     icon:"📱",color:"#0277bd",bg:"#e1f5fe",border:"#81d4fa"},
+  cash:  {label:"Cash on Site",icon:"💵",color:"#2e7d32",bg:"#e8f5e9",border:"#a5d6a7"},
+};
+const NAV = [{id:"home",label:"🏠 Home"},{id:"book",label:"📅 Book"},{id:"schedule",label:"📋 Schedule"},{id:"check",label:"🔍 My Booking"},{id:"admin",label:"🔑 Admin"}];
+
+// ── State ─────────────────────────────────────────────────────
+let reservations=[], blockedDates=[], currentView="home";
+let adminLoggedIn=false, adminTab="dashboard";
+let adminMonth=new Date().toISOString().slice(0,7);
+let bookDate=todayStr(), bookType=null, bookPayment=null, startSlot=null, endSlot=null;
+let weekStart=getWeekStart(new Date());
+let charts={}, isSaving=false;
+
+// ── Helpers ───────────────────────────────────────────────────
+function todayStr(){return new Date().toISOString().split("T")[0];}
+function maxDateStr(){return new Date(Date.now()+60*86400000).toISOString().split("T")[0];}
+function parseLocalDate(s){const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d);}
+function displayDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});}
+function shortDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});}
+function genCode(){return Math.random().toString(36).substring(2,8).toUpperCase();}
+function nowStr(){return new Date().toLocaleString("en-PH",{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});}
+function slotIdx(s){return TIME_SLOTS.indexOf(s);}
+function endSlotLabel(start,hrs){const i=slotIdx(start)+hrs;return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
+function totalPrice(type,hrs){return TYPES[type].price*hrs;}
+function fmt(n){return "₱"+Number(n).toLocaleString();}
+function slotToDate(dateStr,slotStr){
+  const[y,m,d]=dateStr.split("-").map(Number);
+  const[tp,ap]=slotStr.split(" ");let[h,min]=tp.split(":").map(Number);
+  if(ap==="PM"&&h!==12)h+=12;if(ap==="AM"&&h===12)h=0;
+  return new Date(y,m-1,d,h,min,0);
+}
+function hoursUntil(res){return(slotToDate(res.date,res.startSlot)-new Date())/36e5;}
+function canCancel(res){return hoursUntil(res)>=24;}
+function monthLabel(s){const[y,m]=s.split("-").map(Number);return new Date(y,m-1,1).toLocaleDateString("en-PH",{month:"long",year:"numeric"});}
+function allDaysOfMonth(s){const[y,m]=s.split("-").map(Number);const c=new Date(y,m,0).getDate();return Array.from({length:c},(_,i)=>`${y}-${String(m).padStart(2,"0")}-${String(i+1).padStart(2,"0")}`);}
+function getWeekStart(d){const day=d.getDay();const dt=new Date(d);dt.setDate(dt.getDate()-day+(day===0?-6:1));return dt;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function dateToStr(d){return d.toISOString().split("T")[0];}
+function infoRow(l,v){return`<div class="info-row"><span class="info-lbl">${l}</span><span class="info-val">${v}</span></div>`;}
+function isSlotBooked(date,slot){return reservations.some(r=>{if(r.date!==date)return false;const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});}
+function isDateBlocked(date){return blockedDates.some(b=>b.date===date);}
+function getBlockedInfo(date){return blockedDates.find(b=>b.date===date);}
+
+// ── Google Sheets API ─────────────────────────────────────────
+function isConfigured(){return SCRIPT_URL && SCRIPT_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";}
+
+async function apiCall(action, data={}) {
+  if(!isConfigured()) throw new Error("Script URL not configured");
+  const url = SCRIPT_URL + "?action=" + action;
+  const res = await fetch(url, {
+    method: "POST",
+    body: JSON.stringify({action, ...data}),
+  });
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+  return json;
+}
+
+async function loadData(){
+  if(!isConfigured()){
+    document.getElementById("loadingOverlay").style.display="none";
+    showConfigBanner();
+    return;
+  }
+  try {
+    const data = await apiCall("getAll");
+    reservations = (data.reservations||[]).map(r=>({...r, id:Number(r.id), hours:Number(r.hours), paid: r.paid===true||r.paid==="TRUE"||r.paid==="true"}));
+    blockedDates  = data.blockedDates||[];
+    document.getElementById("loadingOverlay").style.display="none";
+  } catch(e) {
+    document.getElementById("loadingOverlay").innerHTML=`
+      <div style="text-align:center;padding:30px;">
+        <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+        <div style="color:var(--danger);font-size:16px;font-weight:bold;margin-bottom:8px;">Connection Failed</div>
+        <div style="color:var(--text-muted);font-size:13px;max-width:320px;">${e.message}</div>
+        <button class="btn-blue" style="margin-top:16px;" onclick="location.reload()">🔄 Retry</button>
+      </div>`;
+  }
+}
+
+function showConfigBanner(){
+  const b=document.getElementById("configBanner");
+  if(b){b.style.display="block";b.innerHTML=`
+    <div style="font-weight:bold;color:var(--warning);font-size:15px;margin-bottom:8px;">⚙️ Setup Required</div>
+    <div style="font-size:13px;color:var(--text-mid);line-height:1.7;">
+      Open <strong>index.html</strong> in a text editor and replace<br/>
+      <code style="background:#fffde7;padding:2px 6px;border-radius:4px;font-size:12px;">YOUR_GOOGLE_APPS_SCRIPT_URL_HERE</code><br/>
+      with your Google Apps Script Web App URL.<br/>
+      <a href="#" style="color:var(--blue);">See setup instructions in bfqc-apps-script.js</a>
+    </div>`;}
+}
+
+// ── Nav ───────────────────────────────────────────────────────
+function buildNav(){
+  const pendingCount=reservations.filter(r=>r.status==="pending").length;
+  ["desktopNav","mobileNav"].forEach(navId=>{
+    const el=document.getElementById(navId);el.innerHTML="";
+    NAV.forEach(n=>{
+      const b=document.createElement("button");
+      const isAdmin=n.id==="admin";
+      b.innerHTML=n.label+(isAdmin&&pendingCount>0?`<span class="${navId==="desktopNav"?"pending-badge":""}" style="${navId==="mobileNav"?"background:#ef5350;color:white;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;":""}">${pendingCount}</span>`:"");
+      b.className=n.id===currentView?"active":"";
+      b.onclick=()=>navTo(n.id);
+      el.appendChild(b);
+    });
+  });
+}
+
+function navTo(id){
+  currentView=id;
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("page-"+id)?.classList.add("active");
+  document.getElementById("mobileNav").style.display="none";
+  document.getElementById("hamburgerBtn").textContent="☰";
+  buildNav();
+  if(id==="book")renderBook();
+  if(id==="schedule")renderSchedule();
+  if(id==="admin")renderAdmin();
+  if(id==="check"){document.getElementById("checkCodeInput").value="";document.getElementById("checkMsg").textContent="";document.getElementById("checkResult").innerHTML="";}
+  window.scrollTo(0,0);
+}
+
+document.getElementById("hamburgerBtn").onclick=function(){
+  const mn=document.getElementById("mobileNav");
+  const open=mn.style.display==="block";
+  mn.style.display=open?"none":"block";
+  this.textContent=open?"☰":"✕";
+};
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg,isError=false){
+  const t=document.getElementById("toast");
+  t.style.background=isError?"var(--danger)":"var(--green)";
+  document.getElementById("toastMsg").textContent=msg;
+  t.style.display="flex";clearTimeout(toastTimer);toastTimer=setTimeout(hideToast,4000);
+}
+function hideToast(){document.getElementById("toast").style.display="none";}
+
+// ── BOOK ──────────────────────────────────────────────────────
+function renderBook(){
+  document.getElementById("bookContent").innerHTML=`
+    <div class="card card-mb">
+      <div class="sec-title">1 · Select Date</div>
+      <input type="date" id="bookDateInput" min="${todayStr()}" max="${maxDateStr()}" value="${bookDate}" onchange="onBookDateChange(this.value)"/>
+      <div id="bookDateLabel" style="margin-top:8px;font-size:13px;font-weight:500;"></div>
+    </div>
+    <div class="card card-mb">
+      <div class="sec-title">2 · Reservation Type &amp; Rate</div>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+    <div class="card card-mb">
+      <div class="sec-title">3 · Select Time Range</div>
+      <p style="color:var(--text-faint);font-size:11px;margin-bottom:12px;">Tap <strong>start slot</strong> then <strong>end slot</strong> &middot; 6:00 AM &ndash; 10:00 PM</p>
+      <div class="slot-grid" id="slotGrid"></div>
+      <div id="slotHint"></div>
+    </div>
+    <div class="card card-mb">
+      <div class="sec-title">4 · Payment Method</div>
+      <div class="flex gap-10 flex-wrap" id="paymentGrid"></div>
+    </div>
+    <div class="card">
+      <div class="sec-title">5 · Your Details</div>
+      <div class="field"><label class="field-label">Full Name <span class="req">*</span></label><input type="text" id="bName" placeholder="Juan dela Cruz"/></div>
+      <div class="field"><label class="field-label">Phone Number <span class="req">*</span></label><input type="tel" id="bPhone" placeholder="09XX XXX XXXX"/></div>
+      <div class="field"><label class="field-label">Email (optional)</label><input type="email" id="bEmail" placeholder="you@email.com"/></div>
+      <div id="bookError"></div>
+      <button class="btn-green" style="width:100%;padding:14px;font-size:14px;" onclick="confirmBook()">Confirm Booking &rarr;</button>
+    </div>`;
+  updateBookDateLabel();renderTypeGrid();renderSlotGrid();renderPaymentGrid();
+}
+
+function onBookDateChange(v){bookDate=v;startSlot=null;endSlot=null;updateBookDateLabel();renderSlotGrid();}
+
+function updateBookDateLabel(){
+  const lbl=document.getElementById("bookDateLabel");if(!lbl)return;
+  const info=getBlockedInfo(bookDate);
+  if(info)lbl.innerHTML=`<div class="alert-error" style="margin-top:0;">⛔ This date is unavailable: <strong>${info.reason}</strong></div>`;
+  else{lbl.style.color="var(--blue)";lbl.textContent=displayDate(bookDate);}
+}
+
+function renderTypeGrid(){
+  const el=document.getElementById("typeGrid");if(!el)return;
+  el.innerHTML=Object.entries(TYPES).map(([name,t])=>`
+    <button class="type-btn" onclick="selectType('${name}')"
+      style="${bookType===name?`background:${t.bg};border:2.5px solid ${t.color};color:${t.color};box-shadow:0 2px 10px ${t.color}28;`:""}">
+      <div style="font-size:22px;margin-bottom:3px;">${t.icon}</div>
+      <div style="font-weight:700;font-size:12px;">${name}</div>
+      <div style="font-size:13px;margin-top:3px;color:${bookType===name?t.color:"var(--text-faint)"};">${fmt(t.price)}/hr</div>
+    </button>`).join("");
+}
+function selectType(n){bookType=n;renderTypeGrid();renderSlotGrid();}
+
+function renderPaymentGrid(){
+  const el=document.getElementById("paymentGrid");if(!el)return;
+  el.innerHTML=Object.entries(PAYMENT_METHODS).map(([key,pm])=>`
+    <button onclick="selectPayment('${key}')" style="flex:1;min-width:120px;padding:14px;border-radius:10px;cursor:pointer;font-family:inherit;text-align:center;transition:all .15s;
+      background:${bookPayment===key?pm.bg:"#f8fbff"};border:${bookPayment===key?`2.5px solid ${pm.color}`:"1.5px solid var(--card-border)"};
+      color:${bookPayment===key?pm.color:"var(--text-muted)"};box-shadow:${bookPayment===key?`0 2px 10px ${pm.color}28`:"none"};">
+      <div style="font-size:24px;margin-bottom:4px;">${pm.icon}</div>
+      <div style="font-weight:700;font-size:13px;">${pm.label}</div>
+    </button>`).join("");
+}
+function selectPayment(k){bookPayment=k;renderPaymentGrid();}
+
+function renderSlotGrid(){
+  const el=document.getElementById("slotGrid");if(!el)return;
+  const t=bookType?TYPES[bookType]:null;
+  el.innerHTML=TIME_SLOTS.map(slot=>{
+    const booked=isSlotBooked(bookDate,slot);
+    const si=slotIdx(startSlot),ci=slotIdx(slot);
+    const sel=slot===startSlot||(startSlot&&endSlot&&ci>=si&&ci<=slotIdx(endSlot));
+    let style="";
+    if(booked)style="background:#f5f5f5;border-color:#e0e0e0;color:var(--text-faint);text-decoration:line-through;cursor:not-allowed;";
+    else if(sel&&t)style=`background:${t.bg};border:2px solid ${t.color};color:${t.color};font-weight:700;`;
+    else if(sel)style="background:var(--green-light);border:2px solid var(--green);color:var(--green);font-weight:700;";
+    return`<button class="slot-btn${booked?" blocked":""}" onclick="${booked||isDateBlocked(bookDate)?"":(`onSlotClick('${slot}')`)}" style="${style}">${slot}</button>`;
+  }).join("");
+  renderSlotHint();
+}
+
+function onSlotClick(slot){
+  if(!startSlot){startSlot=slot;endSlot=null;}
+  else if(slot===startSlot){startSlot=null;endSlot=null;}
+  else{
+    const si=slotIdx(startSlot),ci=slotIdx(slot);
+    if(ci<si){startSlot=slot;endSlot=null;}
+    else{
+      let blocked=false;
+      for(let i=si;i<=ci;i++){if(isSlotBooked(bookDate,TIME_SLOTS[i])){blocked=true;break;}}
+      if(blocked){showBookError("Range includes a booked slot.");return;}
+      endSlot=slot;
+    }
+  }
+  renderSlotGrid();
+}
+
+function renderSlotHint(){
+  const el=document.getElementById("slotHint");if(!el)return;
+  if(!startSlot){el.innerHTML="";return;}
+  const t=bookType?TYPES[bookType]:null;
+  if(endSlot){
+    const hrs=slotIdx(endSlot)-slotIdx(startSlot)+1;
+    const ps=t?` &middot; <strong style="color:${t.color};">${fmt(totalPrice(bookType,hrs))}</strong>`:"";
+    el.innerHTML=`<div class="slot-hint">✅ <strong>${startSlot} &ndash; ${endSlotLabel(startSlot,hrs)}</strong> &middot; ${hrs} hr${hrs>1?"s":""}${ps}</div>`;
+  }else{el.innerHTML=`<div class="slot-hint">Start: <strong>${startSlot}</strong> — now tap an end slot</div>`;}
+}
+
+function showBookError(msg){const el=document.getElementById("bookError");if(el)el.innerHTML=`<div class="alert-error">⚠️ ${msg}</div>`;}
+
+async function confirmBook(){
+  if(getBlockedInfo(bookDate)){showBookError("This date is unavailable: "+getBlockedInfo(bookDate).reason);return;}
+  if(!bookType){showBookError("Please select a reservation type.");return;}
+  if(!startSlot||!endSlot){showBookError("Please select start and end time slots.");return;}
+  if(!bookPayment){showBookError("Please select a payment method.");return;}
+  const name=document.getElementById("bName").value.trim();
+  const phone=document.getElementById("bPhone").value.trim();
+  const email=document.getElementById("bEmail").value.trim();
+  if(!name||!phone){showBookError("Name and phone number are required.");return;}
+  if(isSaving)return;
+  isSaving=true;
+  const bookBtn=document.querySelector("#bookContent .btn-green");
+  if(bookBtn){bookBtn.disabled=true;bookBtn.textContent="Saving...";}
+  const hours=slotIdx(endSlot)-slotIdx(startSlot)+1;
+  const res={id:Date.now(),code:genCode(),status:"pending",paid:false,date:bookDate,type:bookType,paymentMethod:bookPayment,startSlot,hours,name,phone,email,createdAt:nowStr(),approvedAt:""};
+  try{
+    await apiCall("addRes",{reservation:res});
+    reservations.push(res);
+    startSlot=null;endSlot=null;bookType=null;bookPayment=null;
+    buildNav();
+    document.getElementById("bookContent").innerHTML=buildSuccessHTML(res);
+  }catch(e){
+    showBookError("Failed to save booking. Please try again. ("+e.message+")");
+    if(bookBtn){bookBtn.disabled=false;bookBtn.textContent="Confirm Booking →";}
+  }
+  isSaving=false;
+}
+
+function buildSuccessHTML(res){
+  const t=TYPES[res.type],pm=PAYMENT_METHODS[res.paymentMethod]||{};
+  return`<div style="background:#f1f8e9;border:2px solid #43a047;border-radius:14px;padding:24px;text-align:center;">
+    <div style="font-size:44px;margin-bottom:10px;">✅</div>
+    <h3 style="color:var(--green);font-size:18px;margin-bottom:16px;">Booking Submitted!</h3>
+    <div class="card" style="text-align:left;margin-bottom:14px;">
+      ${infoRow("Name",res.name)}${infoRow("Phone",res.phone)}
+      ${infoRow("Type",`<span class="badge" style="color:${t.color};background:${t.bg};border:1.5px solid ${t.border};">${t.icon} ${res.type}</span>`)}
+      ${infoRow("Date",displayDate(res.date))}
+      ${infoRow("Time",`${res.startSlot} &ndash; ${endSlotLabel(res.startSlot,res.hours)}`)}
+      ${infoRow("Hours",`${res.hours} hr${res.hours>1?"s":""}`)}
+      ${infoRow("Payment",`<span class="badge" style="color:${pm.color};background:${pm.bg};border:1px solid ${pm.border};">${pm.icon} ${pm.label}</span>`)}
+      ${infoRow("Total",`<strong style="color:var(--green);font-size:15px;">${fmt(totalPrice(res.type,res.hours))}</strong>`)}
+    </div>
+    <div style="background:var(--warning-bg);border:1.5px solid var(--warning-border);border-radius:8px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:2px;margin-bottom:4px;font-weight:bold;color:var(--warning);">STATUS</div>
+      <div style="font-size:16px;font-weight:bold;color:var(--warning);">⏳ PENDING APPROVAL</div>
+      <div style="font-size:12px;margin-top:3px;color:var(--text-muted);">Admin will review your booking shortly.</div>
+    </div>
+    <div class="code-box">
+      <div class="code-lbl">CANCELLATION CODE — SAVE THIS!</div>
+      <div class="code-val">${res.code}</div>
+      <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">Use this code to check status or cancel</div>
+    </div>
+    <div class="flex gap-10" style="justify-content:center;flex-wrap:wrap;">
+      <button class="btn-blue btn-sm" onclick='downloadReceipt(${JSON.stringify(res).replace(/'/g,"&#39;")})'>📄 Download Receipt</button>
+      <button class="btn-outline btn-sm" onclick="navTo('check')">🔍 Check Status</button>
+      <button class="btn-outline btn-sm" onclick="renderBook()">Book Another</button>
+    </div>
+  </div>`;
+}
+
+// ── CHECK STATUS ──────────────────────────────────────────────
+function checkStatus(){
+  const code=document.getElementById("checkCodeInput").value.toUpperCase().trim();
+  const msgEl=document.getElementById("checkMsg"),resEl=document.getElementById("checkResult");
+  if(!code){msgEl.innerHTML=`<span style="color:var(--danger);">Please enter a code.</span>`;return;}
+  const found=reservations.find(r=>r.code===code);
+  if(!found){msgEl.innerHTML=`<span style="color:var(--danger);">❌ No reservation found with that code.</span>`;resEl.innerHTML="";return;}
+  msgEl.textContent="";
+  const t=TYPES[found.type],approved=found.status==="approved",hrs=hoursUntil(found);
+  const pm=found.paymentMethod?PAYMENT_METHODS[found.paymentMethod]:null;
+  const cancelNote=hrs<24&&hrs>0?`<div class="alert-error" style="margin-top:10px;">⚠️ Cannot cancel — less than 24hrs away. Contact us: ${CONTACT}</div>`:hrs<=0?`<div style="color:var(--text-muted);font-size:12px;margin-top:8px;">This reservation has passed.</div>`:"";
+  resEl.innerHTML=`<div class="card">
+    <div style="text-align:center;padding:16px 0 20px;border-bottom:1px solid var(--card-border);margin-bottom:16px;">
+      <div style="font-size:44px;">${approved?"✅":"⏳"}</div>
+      <div style="font-weight:bold;font-size:18px;margin-top:8px;color:${approved?"var(--green)":"var(--warning)"};">${approved?"APPROVED":"PENDING APPROVAL"}</div>
+      <div style="color:var(--text-muted);font-size:12px;margin-top:4px;">${approved?"Your court is confirmed!":"Awaiting admin review."}</div>
+    </div>
+    ${infoRow("Name",found.name)}
+    ${infoRow("Type",`<span class="badge" style="color:${t.color};background:${t.bg};border:1.5px solid ${t.border};">${t.icon} ${found.type}</span>`)}
+    ${infoRow("Date",displayDate(found.date))}
+    ${infoRow("Time",`${found.startSlot} &ndash; ${endSlotLabel(found.startSlot,found.hours)}`)}
+    ${infoRow("Hours",`${found.hours} hr${found.hours>1?"s":""}`)}
+    ${pm?infoRow("Payment",`<span class="badge" style="color:${pm.color};background:${pm.bg};border:1px solid ${pm.border};">${pm.icon} ${pm.label}</span> ${found.paid?'<span style="color:var(--green);font-size:12px;"> ✅ Paid</span>':'<span style="color:var(--warning);font-size:12px;"> ⏳ Unpaid</span>'}`):""}
+    ${infoRow("Total",`<strong style="color:var(--green);">${fmt(totalPrice(found.type,found.hours))}</strong>`)}
+    ${infoRow("Code",`<strong style="color:var(--green);letter-spacing:4px;">${found.code}</strong>`)}
+    ${infoRow("Submitted",found.createdAt)}
+    ${found.approvedAt?infoRow("Approved",found.approvedAt):""}
+    ${cancelNote}
+    <div class="divider"></div>
+    <button class="btn-blue" style="width:100%;padding:12px;font-size:13px;" onclick='downloadReceipt(${JSON.stringify(found).replace(/'/g,"&#39;")})'>📄 Download ${approved?"Approved":"Pending"} Receipt</button>
+  </div>`;
+}
+
+// ── CANCEL ────────────────────────────────────────────────────
+async function handleCancel(){
+  const code=document.getElementById("cancelCodeInput").value.toUpperCase().trim();
+  const msgEl=document.getElementById("cancelMsg");
+  const found=reservations.find(r=>r.code===code);
+  if(!found){msgEl.innerHTML=`<span style="color:var(--danger);">❌ No reservation found.</span>`;return;}
+  const hrs=hoursUntil(found);
+  if(hrs<0){msgEl.innerHTML=`<span style="color:var(--danger);">❌ This reservation has already passed.</span>`;return;}
+  if(!canCancel(found)){
+    const h=Math.max(0,Math.floor(hrs)),m=Math.floor((hrs%1)*60);
+    msgEl.innerHTML=`<span style="color:var(--danger);">❌ Cannot cancel — ${h}h ${m}m remaining. Contact: <strong>${CONTACT}</strong></span>`;return;
+  }
+  msgEl.innerHTML=`<span style="color:var(--text-muted);">Cancelling...</span>`;
+  try{
+    await apiCall("deleteRes",{id:found.id});
+    reservations=reservations.filter(r=>r.code!==code);
+    buildNav();
+    msgEl.innerHTML=`<span style="color:var(--green);">✅ Reservation for <strong>${found.name}</strong> on ${shortDate(found.date)} cancelled.</span>`;
+    document.getElementById("cancelCodeInput").value="";
+    renderSchedule();
+  }catch(e){msgEl.innerHTML=`<span style="color:var(--danger);">❌ Error: ${e.message}</span>`;}
+}
+
+// ── SCHEDULE ──────────────────────────────────────────────────
+function renderSchedule(){
+  const inp=document.getElementById("schedDateInput");
+  if(inp&&!inp.value)inp.value=todayStr();
+  const date=inp?inp.value:todayStr();
+  const lbl=document.getElementById("schedDateLabel");
+  if(lbl){const info=getBlockedInfo(date);if(info)lbl.innerHTML=`<span style="color:var(--danger);">⛔ Unavailable: ${info.reason}</span>`;else{lbl.style.color="var(--blue)";lbl.textContent=displayDate(date);}}
+  const leg=document.getElementById("schedLegend");
+  if(leg)leg.innerHTML=`<span style="color:var(--text-muted);"><span class="legend-dot" style="background:#f5f5f5;border:1px solid #e0e0e0;"></span>Available</span>${Object.entries(TYPES).map(([n,t])=>`<span style="color:${t.color};font-weight:bold;"><span class="legend-dot" style="background:${t.bg};border:1.5px solid ${t.color};"></span>${n}</span>`).join("")}`;
+  const tl=document.getElementById("schedTimeline");
+  if(tl){
+    const dayRes=reservations.filter(r=>r.date===date&&r.status==="approved");
+    tl.innerHTML=TIME_SLOTS.map(slot=>{
+      const res=dayRes.find(r=>{const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});
+      const t=res?TYPES[res.type]:null;
+      return`<div class="timeline-row"><div class="timeline-slot">${slot}</div>
+        <div class="timeline-bar" style="${t?`background:${t.bg};border:1.5px solid ${t.border};`:""}">
+          ${t?`<span style="color:${t.color};">${t.icon} ${res.type}</span>`:`<span style="color:var(--text-faint);font-size:11px;">Available</span>`}
+        </div></div>`;
+    }).join("");
+  }
+}
+
+// ── RECEIPT ───────────────────────────────────────────────────
+function downloadReceipt(res){
+  if(typeof res==="number") res=reservations.find(r=>r.id===res);
+  if(!res){alert("Not found.");return;}
+  const t=TYPES[res.type],approved=res.status==="approved";
+  const sc=approved?"#2e7d32":"#e65100",sl=approved?"APPROVED":"PENDING APPROVAL";
+  const note=approved?"Your reservation is CONFIRMED. Please present this receipt at the court.":"This receipt is PENDING. Please wait for admin approval.";
+  const pm=res.paymentMethod?PAYMENT_METHODS[res.paymentMethod]:null;
+  const price=totalPrice(res.type,res.hours);
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>BFQC Receipt ${res.code}</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Lato',sans-serif;background:#e1f5fe;display:flex;justify-content:center;padding:40px 20px;}
+.card{background:white;width:460px;border-radius:16px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.12);}
+.hdr{background:linear-gradient(135deg,#0277bd,#1b5e20);padding:28px;text-align:center;}
+.logo{width:90px;height:90px;object-fit:contain;border-radius:50%;background:white;padding:5px;margin-bottom:10px;}
+.club{font-family:'Cinzel',serif;color:white;font-size:20px;letter-spacing:3px;}.sub{color:rgba(255,255,255,.75);font-size:10px;letter-spacing:4px;text-transform:uppercase;margin-top:3px;}
+.badge{display:inline-block;margin-top:14px;padding:7px 18px;border-radius:20px;font-weight:700;font-size:13px;background:white;color:${sc};border:2px solid ${sc};}
+.body{padding:28px;}.code-box{background:linear-gradient(135deg,#e8f5e9,#e1f5fe);border:2px solid #43a047;border-radius:10px;padding:14px;text-align:center;margin-bottom:18px;}
+.code-lbl{font-size:10px;color:#2e7d32;letter-spacing:3px;text-transform:uppercase;margin-bottom:6px;}.code-val{font-family:'Cinzel',serif;font-size:26px;letter-spacing:8px;color:#1b5e20;font-weight:700;}
+.div{height:1px;background:linear-gradient(90deg,transparent,#b2dfdb,transparent);margin:16px 0;}
+.row{display:flex;justify-content:space-between;margin-bottom:10px;}.lbl{font-size:11px;color:#78909c;text-transform:uppercase;letter-spacing:1px;}.val{font-size:13px;color:#1a237e;font-weight:600;text-align:right;}
+.type-b{display:inline-block;padding:3px 10px;border-radius:10px;font-size:12px;font-weight:700;background:${t.bg};color:${t.color};border:1px solid ${t.border};}
+.price-box{background:#e8f5e9;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin:14px 0;}
+.price-lbl{font-size:12px;color:#388e3c;}.price-val{font-size:20px;font-weight:700;color:#1b5e20;font-family:'Cinzel',serif;}
+.note{background:#f1f8e9;border-left:4px solid ${sc};border-radius:4px;padding:12px 14px;font-size:12px;color:#37474f;line-height:1.6;}
+.ftr{background:#e1f5fe;padding:14px;text-align:center;font-size:10px;color:#0277bd;letter-spacing:1px;}
+@media print{body{background:white;padding:0;}.card{box-shadow:none;width:100%;}}</style>
+</head><body><div class="card">
+  <div class="hdr"><img class="logo" src="https://i.imgur.com/YOUR_LOGO.png" alt="BFQC" onerror="this.style.display='none'"/>
+    <div class="club">BFQC TENNIS CLUB</div><div class="sub">Court Reservation Receipt</div><div class="badge">${sl}</div></div>
+  <div class="body">
+    <div class="code-box"><div class="code-lbl">Reference Code</div><div class="code-val">${res.code}</div></div>
+    <div class="row"><span class="lbl">Booker Name</span><span class="val">${res.name}</span></div>
+    <div class="row"><span class="lbl">Phone</span><span class="val">${res.phone}</span></div>
+    <div class="div"></div>
+    <div class="row"><span class="lbl">Type</span><span class="val"><span class="type-b">${t.icon} ${res.type}</span></span></div>
+    <div class="row"><span class="lbl">Date</span><span class="val">${displayDate(res.date)}</span></div>
+    <div class="row"><span class="lbl">Time</span><span class="val">${res.startSlot} to ${endSlotLabel(res.startSlot,res.hours)}</span></div>
+    <div class="row"><span class="lbl">Total Hours</span><span class="val">${res.hours} hour${res.hours>1?"s":""}</span></div>
+    ${pm?`<div class="row"><span class="lbl">Payment</span><span class="val">${pm.icon} ${pm.label} — ${res.paid?"✅ Paid":"⏳ Unpaid"}</span></div>`:""}
+    <div class="price-box"><span class="price-lbl">Total Amount (&#8369;${TYPES[res.type].price}/hr &times; ${res.hours}hr)</span><span class="price-val">&#8369;${price.toLocaleString()}</span></div>
+    <div class="div"></div><div class="note">${note}</div>
+  </div>
+  <div class="ftr">Tel: ${CONTACT} | Generated: ${nowStr()} | BFQC Tennis Club</div>
+</div></body></html>`;
+  const blob=new Blob([html],{type:"text/html"});const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=`BFQC-Receipt-${res.code}.html`;a.click();URL.revokeObjectURL(url);
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────
+function renderAdmin(){
+  const el=document.getElementById("adminContent");
+  if(!adminLoggedIn){
+    el.innerHTML=`<div class="card" style="max-width:340px;">
+      <div class="sec-title">Admin Login</div>
+      <div class="field"><label class="field-label">Password</label>
+        <input type="password" id="adminPwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')adminLogin()"/></div>
+      <div id="adminLoginErr" style="color:var(--danger);font-size:12px;margin-bottom:10px;"></div>
+      <button class="btn-green" style="width:100%;" onclick="adminLogin()">Login</button>
+    </div>`;return;
+  }
+  const pending=reservations.filter(r=>r.status==="pending").sort((a,b)=>a.date>b.date?1:-1);
+  const approved=reservations.filter(r=>r.status==="approved").sort((a,b)=>a.date>b.date?1:-1);
+  const tabs=[
+    {id:"dashboard",label:"📊 Dashboard",     ab:"#e8eaf6",ac:"#3949ab"},
+    {id:"pending",  label:`⏳ Pending (${pending.length})`,  ab:"#fff3e0",ac:"#e65100"},
+    {id:"approved", label:`✅ Approved (${approved.length})`, ab:"#e8f5e9",ac:"#2e7d32"},
+    {id:"weekly",   label:"📅 Weekly",         ab:"#e1f5fe",ac:"#0277bd"},
+    {id:"monthly",  label:"📅 Monthly",        ab:"#f3e5f5",ac:"#6a1b9a"},
+    {id:"blocked",  label:`⛔ Blocked (${blockedDates.length})`,ab:"#ffebee",ac:"#c62828"},
+  ];
+  const tabBtns=tabs.map(tb=>{const a=adminTab===tb.id;return`<button class="btn-outline btn-sm" style="${a?`background:${tb.ab};border:1.5px solid ${tb.ac};color:${tb.ac};font-weight:bold;`:""}" onclick="setAdminTab('${tb.id}')">${tb.label}</button>`;}).join("");
+  let content="";
+  if(adminTab==="dashboard")content=buildDashboard();
+  else if(adminTab==="pending")content=pending.length===0?emptyCard("No pending reservations."):pending.map(r=>buildAdminCard(r,"pending")).join("");
+  else if(adminTab==="approved")content=approved.length===0?emptyCard("No approved reservations."):approved.map(r=>buildAdminCard(r,"approved")).join("");
+  else if(adminTab==="weekly")content=buildWeeklyTab();
+  else if(adminTab==="monthly")content=buildMonthlyTab();
+  else if(adminTab==="blocked")content=buildBlockedTab();
+  el.innerHTML=`
+    <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+      <div class="flex gap-8 flex-wrap">${tabBtns}</div>
+      <div class="flex gap-8">
+        <button class="btn-blue btn-sm" onclick="refreshData()">🔄 Refresh</button>
+        <button class="btn-outline btn-sm" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+    <div id="adminTabContent">${content}</div>`;
+  if(adminTab==="dashboard")setTimeout(renderCharts,100);
+}
+
+function emptyCard(msg){return`<div class="card"><div style="text-align:center;padding:28px 0;color:var(--text-faint);">${msg}</div></div>`;}
+function adminLogin(){const pw=document.getElementById("adminPwInput").value;if(pw===ADMIN_PASSWORD){adminLoggedIn=true;adminTab="dashboard";renderAdmin();}else{document.getElementById("adminLoginErr").textContent="❌ Incorrect password.";}}
+function adminLogout(){adminLoggedIn=false;renderAdmin();}
+function setAdminTab(t){adminTab=t;renderAdmin();}
+
+async function refreshData(){
+  showToast("Refreshing data...");
+  try{
+    const data=await apiCall("getAll");
+    reservations=(data.reservations||[]).map(r=>({...r,id:Number(r.id),hours:Number(r.hours),paid:r.paid===true||r.paid==="TRUE"||r.paid==="true"}));
+    blockedDates=data.blockedDates||[];
+    buildNav();renderAdmin();showToast("Data refreshed!");
+  }catch(e){showToast("Refresh failed: "+e.message,true);}
+}
+
+async function adminApprove(id){
+  try{
+    await apiCall("updateRes",{id,fields:{status:"approved",approvedAt:nowStr()}});
+    const i=reservations.findIndex(r=>r.id===id);
+    if(i>-1){reservations[i].status="approved";reservations[i].approvedAt=nowStr();}
+    showToast("Reservation approved!");buildNav();renderAdmin();
+  }catch(e){showToast("Error: "+e.message,true);}
+}
+async function adminReject(id){
+  try{
+    await apiCall("deleteRes",{id});
+    reservations=reservations.filter(r=>r.id!==id);
+    showToast("Reservation rejected.");buildNav();renderAdmin();
+  }catch(e){showToast("Error: "+e.message,true);}
+}
+async function adminDelete(id){
+  if(!confirm("Delete this reservation?"))return;
+  try{
+    await apiCall("deleteRes",{id});
+    reservations=reservations.filter(r=>r.id!==id);
+    showToast("Reservation deleted.");renderAdmin();
+  }catch(e){showToast("Error: "+e.message,true);}
+}
+async function adminMarkPaid(id,paid){
+  try{
+    await apiCall("updateRes",{id,fields:{paid}});
+    const i=reservations.findIndex(r=>r.id===id);
+    if(i>-1)reservations[i].paid=paid;
+    showToast(paid?"Marked as paid!":"Marked as unpaid.");renderAdmin();
+  }catch(e){showToast("Error: "+e.message,true);}
+}
+
+function buildAdminCard(res,mode){
+  const t=TYPES[res.type],pm=res.paymentMethod?PAYMENT_METHODS[res.paymentMethod]:null;
+  const payRow=pm?`<div style="margin-top:4px;">
+    <span class="badge" style="color:${pm.color};background:${pm.bg};border:1px solid ${pm.border};">${pm.icon} ${pm.label}</span>
+    ${res.paid?`<span class="badge" style="color:#2e7d32;background:#e8f5e9;border:1px solid #a5d6a7;margin-left:4px;">✅ Paid</span>`:`<span class="badge" style="color:var(--warning);background:var(--warning-bg);border:1px solid var(--warning-border);margin-left:4px;">⏳ Unpaid</span>`}
+  </div>`:"";
+  const payBtn=mode==="approved"&&pm?(res.paid
+    ?`<button class="btn-outline btn-sm" onclick="adminMarkPaid(${res.id},false)" style="font-size:11px;">↩ Unpaid</button>`
+    :`<button class="btn-green btn-sm" onclick="adminMarkPaid(${res.id},true)">💰 Mark Paid</button>`):"";
+  const actions=mode==="pending"
+    ?`<button class="btn-green btn-sm" onclick="adminApprove(${res.id})">✅ Approve</button><button class="btn-danger btn-sm" onclick="adminReject(${res.id})">❌ Reject</button>`
+    :`${payBtn}<button class="btn-blue btn-sm" onclick='downloadReceipt(${res.id})'>📄 Receipt</button><button class="btn-danger btn-sm" onclick="adminDelete(${res.id})">🗑 Delete</button>`;
+  return`<div class="card" style="margin-bottom:10px;">
+    <div class="flex" style="justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div class="flex gap-8" style="align-items:center;">
+        <span style="font-size:18px;">${mode==="pending"?"⏳":"✅"}</span>
+        <div><div style="font-weight:bold;font-size:14px;">${res.name}</div><div style="color:var(--text-faint);font-size:10px;margin-top:1px;">Submitted: ${res.createdAt}</div></div>
+      </div>
+      <span class="badge" style="color:${t.color};background:${t.bg};border:1.5px solid ${t.border};">${t.icon} ${res.type}</span>
+    </div>
+    <div class="admin-card-info">
+      <div style="color:var(--blue);margin-bottom:3px;font-weight:500;">📅 ${displayDate(res.date)}</div>
+      <div style="color:var(--text-mid);">🕐 ${res.startSlot} &ndash; ${endSlotLabel(res.startSlot,res.hours)} &middot; ${res.hours} hr${res.hours>1?"s":""}</div>
+      <div style="color:var(--text-mid);margin-top:3px;">📞 ${res.phone}</div>
+      ${res.email?`<div style="color:var(--text-faint);font-size:11px;">✉️ ${res.email}</div>`:""}
+      <div style="color:var(--green);font-weight:bold;margin-top:4px;font-size:14px;">${fmt(totalPrice(res.type,res.hours))}</div>
+      ${payRow}
+      <div style="color:var(--text-faint);font-size:10px;margin-top:3px;letter-spacing:2px;">CODE: ${res.code}</div>
+      ${res.approvedAt?`<div style="color:var(--text-faint);font-size:10px;margin-top:2px;">Approved: ${res.approvedAt}</div>`:""}
+    </div>
+    <div class="flex gap-8 flex-wrap">${actions}</div>
+  </div>`;
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function buildDashboard(){
+  const curMonth=new Date().toISOString().slice(0,7);
+  const monthRes=reservations.filter(r=>r.date.startsWith(curMonth));
+  const totalRev=monthRes.reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const paidRev=monthRes.filter(r=>r.paid).reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const pending=reservations.filter(r=>r.status==="pending").length;
+  const approved=reservations.filter(r=>r.status==="approved").length;
+  return`
+    <div class="dash-grid">
+      <div class="dash-stat"><div class="dash-stat-val" style="color:var(--blue);">${reservations.length}</div><div class="dash-stat-lbl">Total Bookings</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" style="color:var(--warning);">${pending}</div><div class="dash-stat-lbl">Pending</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green);">${approved}</div><div class="dash-stat-lbl">Approved</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" style="color:var(--green);">${fmt(totalRev)}</div><div class="dash-stat-lbl">Est. Revenue (${monthLabel(curMonth)})</div></div>
+      <div class="dash-stat"><div class="dash-stat-val" style="color:#1b5e20;">${fmt(paidRev)}</div><div class="dash-stat-lbl">Collected (${monthLabel(curMonth)})</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="chart-wrap" style="grid-column:1/-1;"><div class="chart-title">Bookings Per Day — ${monthLabel(curMonth)}</div><canvas id="chartDaily" height="80"></canvas></div>
+      <div class="chart-wrap"><div class="chart-title">Revenue by Type — ${monthLabel(curMonth)}</div><canvas id="chartType" height="180"></canvas></div>
+      <div class="chart-wrap"><div class="chart-title">Booking Status</div><canvas id="chartStatus" height="180"></canvas></div>
+    </div>`;
+}
+
+function renderCharts(){
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};
+  const curMonth=new Date().toISOString().slice(0,7);
+  const monthRes=reservations.filter(r=>r.date.startsWith(curMonth));
+  const days=allDaysOfMonth(curMonth);
+  const dc=document.getElementById("chartDaily");
+  if(dc)charts.daily=new Chart(dc,{type:"bar",data:{labels:days.map(d=>parseLocalDate(d).getDate()),datasets:[{label:"Bookings",data:days.map(d=>reservations.filter(r=>r.date===d).length),backgroundColor:"rgba(2,119,189,.6)",borderColor:"#0277bd",borderWidth:1,borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const tc=document.getElementById("chartType");
+  if(tc){const tr=Object.entries(TYPES).map(([n,t])=>({n,rev:monthRes.filter(r=>r.type===n).reduce((s,r)=>s+totalPrice(r.type,r.hours),0),color:t.color}));charts.type=new Chart(tc,{type:"doughnut",data:{labels:tr.map(t=>`${t.n} (${fmt(t.rev)})`),datasets:[{data:tr.map(t=>t.rev),backgroundColor:tr.map(t=>t.color),borderColor:"white",borderWidth:2}]},options:{plugins:{legend:{position:"bottom",labels:{font:{size:11}}}}}}); }
+  const sc=document.getElementById("chartStatus");
+  if(sc){const p=reservations.filter(r=>r.status==="pending").length,a=reservations.filter(r=>r.status==="approved").length;charts.status=new Chart(sc,{type:"pie",data:{labels:[`Pending (${p})`,`Approved (${a})`],datasets:[{data:[p,a],backgroundColor:["#ffa726","#43a047"],borderColor:"white",borderWidth:2}]},options:{plugins:{legend:{position:"bottom",labels:{font:{size:11}}}}}}); }
+}
+
+// ── WEEKLY VIEW ───────────────────────────────────────────────
+function buildWeeklyTab(){
+  const weekDays=Array.from({length:7},(_,i)=>addDays(weekStart,i));
+  const prevW=dateToStr(addDays(weekStart,-7)),nextW=dateToStr(addDays(weekStart,7));
+  const headers=weekDays.map(d=>{const isToday=dateToStr(d)===todayStr();return`<div class="week-header" style="${isToday?"background:rgba(255,255,255,.25);":""}">${d.toLocaleDateString("en-PH",{weekday:"short"})}<br/><span style="font-size:13px;">${d.getDate()}</span></div>`;}).join("");
+  const rows=TIME_SLOTS.map(slot=>{
+    const cells=weekDays.map(d=>{
+      const ds=dateToStr(d);
+      const res=reservations.find(r=>{if(r.date!==ds||r.status!=="approved")return false;const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});
+      const t=res?TYPES[res.type]:null,bl=isDateBlocked(ds);
+      return`<div class="week-cell" style="${bl?"background:#fff5f5;":""}">
+        ${t?`<div class="week-event" style="background:${t.bg};color:${t.color};border-left:2px solid ${t.color};">${t.icon}</div>`:""}
+        ${bl&&!t?`<div style="font-size:8px;color:#ef5350;text-align:center;">⛔</div>`:""}
+      </div>`;
+    }).join("");
+    return`<div class="week-time">${slot}</div>${cells}`;
+  }).join("");
+  return`
+    <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <button class="btn-outline btn-sm" onclick="changeWeek('${prevW}')">&#8592; Prev</button>
+      <div style="font-weight:bold;color:var(--blue);font-size:14px;">${shortDate(dateToStr(weekDays[0]))} &ndash; ${shortDate(dateToStr(weekDays[6]))}</div>
+      <button class="btn-outline btn-sm" onclick="changeWeek('${nextW}')">Next &#8594;</button>
+    </div>
+    <div class="legend" style="margin-bottom:10px;">${Object.entries(TYPES).map(([n,t])=>`<span style="color:${t.color};font-weight:bold;font-size:12px;"><span class="legend-dot" style="background:${t.bg};border:1.5px solid ${t.color};"></span>${n}</span>`).join("")}</div>
+    <div style="overflow-x:auto;"><div class="week-grid" style="min-width:480px;"><div class="week-header"></div>${headers}${rows}</div></div>`;
+}
+function changeWeek(ds){weekStart=parseLocalDate(ds);renderAdmin();}
+
+// ── MONTHLY VIEW ──────────────────────────────────────────────
+function buildMonthlyTab(){
+  const monthRes=reservations.filter(r=>r.date.startsWith(adminMonth));
+  const days=allDaysOfMonth(adminMonth);
+  const dayCards=days.map(dateStr=>{
+    const dayRes=reservations.filter(r=>r.date===dateStr).sort((a,b)=>slotIdx(a.startSlot)-slotIdx(b.startSlot));
+    const isBl=isDateBlocked(dateStr);
+    if(dayRes.length===0&&!isBl)return"";
+    const dow=parseLocalDate(dateStr).toLocaleDateString("en-PH",{weekday:"short",month:"short",day:"numeric"});
+    const rows=dayRes.map(r=>{
+      const t=TYPES[r.type],pm=r.paymentMethod?PAYMENT_METHODS[r.paymentMethod]:null;
+      const bg=r.status==="approved"?"background:var(--green-light);border:1px solid #a5d6a7;":"background:var(--warning-bg);border:1px solid var(--warning-border);";
+      return`<div class="monthly-res-row" style="${bg}">
+        <div style="font-size:16px;padding-top:2px;">${r.status==="approved"?"✅":"⏳"}</div>
+        <div style="flex:1;min-width:130px;">
+          <div style="font-weight:bold;color:var(--text);font-size:13px;">${r.name}</div>
+          <div style="color:var(--text-muted);font-size:12px;margin-top:2px;">📞 ${r.phone}</div>
+          ${r.email?`<div style="color:var(--text-faint);font-size:11px;">✉️ ${r.email}</div>`:""}
+          <div style="color:var(--text-faint);font-size:10px;margin-top:2px;letter-spacing:1px;">CODE: ${r.code}</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge" style="color:${t.color};background:${t.bg};border:1px solid ${t.border};display:block;margin-bottom:3px;">${t.icon} ${r.type}</span>
+          <div style="color:var(--text-mid);font-size:11px;">${r.startSlot} &ndash; ${endSlotLabel(r.startSlot,r.hours)}</div>
+          <div style="color:var(--green);font-weight:bold;font-size:12px;">${fmt(totalPrice(r.type,r.hours))}</div>
+          ${pm?`<div style="font-size:10px;margin-top:2px;color:${pm.color};">${pm.icon} ${pm.label} ${r.paid?"✅":"⏳"}</div>`:""}
+        </div>
+      </div>`;
+    }).join("");
+    return`<div class="card" style="margin-bottom:10px;">
+      <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:${dayRes.length>0?10:0}px;flex-wrap:wrap;gap:6px;">
+        <div style="font-weight:bold;color:var(--blue);font-size:14px;">${dow}</div>
+        <div class="flex gap-8 flex-wrap">
+          ${isBl?`<span class="badge" style="color:var(--danger);background:var(--danger-bg);border:1px solid var(--danger-border);">⛔ ${getBlockedInfo(dateStr)?.reason}</span>`:""}
+          ${dayRes.length>0?`<span class="badge" style="color:#3949ab;background:#e8eaf6;border:1px solid #9fa8da;">${dayRes.length} booking${dayRes.length!==1?"s":""}</span>`:""}
+        </div>
+      </div>${rows}
+    </div>`;
+  }).join("");
+  const totalRev=monthRes.reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const appr=monthRes.filter(r=>r.status==="approved").length,pend=monthRes.filter(r=>r.status==="pending").length;
+  const paid=monthRes.filter(r=>r.paid).reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const summary=monthRes.length===0?"":
+    `<div style="background:linear-gradient(135deg,#e8f5e9,#e1f5fe);border:1.5px solid #81c784;border-radius:12px;padding:16px;margin-top:6px;">
+      <div class="sec-title">Monthly Summary &mdash; ${monthLabel(adminMonth)}</div>
+      <div class="summary-grid">
+        <div class="summary-item"><div class="summary-val" style="color:var(--blue);">${monthRes.length}</div><div class="summary-lbl">Total Bookings</div></div>
+        <div class="summary-item"><div class="summary-val" style="color:var(--green);">${appr}</div><div class="summary-lbl">Approved</div></div>
+        <div class="summary-item"><div class="summary-val" style="color:var(--warning);">${pend}</div><div class="summary-lbl">Pending</div></div>
+        <div class="summary-item"><div class="summary-val" style="color:var(--green);">${fmt(totalRev)}</div><div class="summary-lbl">Est. Revenue</div></div>
+        <div class="summary-item"><div class="summary-val" style="color:#1b5e20;">${fmt(paid)}</div><div class="summary-lbl">Collected</div></div>
+      </div>
+    </div>`;
+  return`
+    <div class="flex" style="align-items:flex-end;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+      <div><label class="field-label">Select Month</label>
+        <input type="month" value="${adminMonth}" onchange="onAdminMonthChange(this.value)" style="padding:10px 14px;border-radius:8px;background:white;border:1.5px solid var(--card-border);color:var(--text);font-size:14px;font-family:inherit;outline:none;min-width:180px;"/></div>
+      <div><span style="color:var(--blue);font-weight:bold;font-size:15px;">${monthLabel(adminMonth)}</span>
+        <span style="color:var(--text-muted);font-size:12px;margin-left:8px;">${monthRes.length} reservation(s)</span></div>
+      <button class="btn-purple btn-sm no-print" onclick="printMonthlyReport()">🖨️ Print Report</button>
+    </div>
+    ${monthRes.length===0&&!days.some(d=>isDateBlocked(d))?emptyCard(`No reservations for ${monthLabel(adminMonth)}.`):dayCards}
+    ${summary}`;
+}
+function onAdminMonthChange(v){adminMonth=v;renderAdmin();}
+
+// ── PRINT REPORT ──────────────────────────────────────────────
+function printMonthlyReport(){
+  const monthRes=reservations.filter(r=>r.date.startsWith(adminMonth));
+  const totalRev=monthRes.reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const appr=monthRes.filter(r=>r.status==="approved").length,pend=monthRes.filter(r=>r.status==="pending").length;
+  const paid=monthRes.filter(r=>r.paid).reduce((s,r)=>s+totalPrice(r.type,r.hours),0);
+  const rows=monthRes.sort((a,b)=>a.date>b.date?1:a.date<b.date?-1:slotIdx(a.startSlot)-slotIdx(b.startSlot)).map(r=>{
+    const t=TYPES[r.type],pm=r.paymentMethod?PAYMENT_METHODS[r.paymentMethod]:null;
+    return`<tr><td>${shortDate(r.date)}</td><td>${r.startSlot} &ndash; ${endSlotLabel(r.startSlot,r.hours)}</td><td>${r.name}</td><td>${r.phone}</td><td>${t.icon} ${r.type}</td><td>${r.hours}h</td><td>${fmt(totalPrice(r.type,r.hours))}</td><td>${pm?pm.label:"-"}</td><td>${r.paid?"✅ Paid":"⏳ Unpaid"}</td><td style="color:${r.status==="approved"?"#2e7d32":"#e65100"};font-weight:bold;">${r.status==="approved"?"Approved":"Pending"}</td></tr>`;
+  }).join("");
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>BFQC Monthly Report — ${monthLabel(adminMonth)}</title>
+<style>@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Lato',sans-serif;background:white;padding:30px;color:#1a2a3a;}
+.hdr{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #0277bd;}
+.logo{width:70px;height:70px;object-fit:contain;border-radius:50%;border:2px solid #e1f5fe;}
+h1{color:#0277bd;font-size:22px;}h2{color:#37474f;font-size:13px;font-weight:400;margin-top:4px;}
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;}
+.stat{background:#f5f9ff;border:1px solid #b3ddf7;border-radius:8px;padding:12px 16px;text-align:center;min-width:110px;}
+.stat-val{font-size:20px;font-weight:700;}.stat-lbl{font-size:10px;color:#607d8b;margin-top:3px;text-transform:uppercase;letter-spacing:1px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead{background:linear-gradient(135deg,#0277bd,#01579b);color:white;}
+th{padding:9px 8px;text-align:left;font-weight:700;letter-spacing:.5px;}
+td{padding:8px;border-bottom:1px solid #f0f7ff;vertical-align:middle;}
+tr:nth-child(even){background:#f8fbff;}
+.ftr{margin-top:20px;text-align:center;font-size:11px;color:#90a4ae;border-top:1px solid #e1f5fe;padding-top:12px;}
+@media print{body{padding:15px;}}</style>
+</head><body>
+<div class="hdr"><img class="logo" src="https://i.imgur.com/YOUR_LOGO.png" alt="BFQC" onerror="this.style.display='none'"/>
+<div><h1>BFQC Tennis Club</h1><h2>Monthly Reservation Report &mdash; ${monthLabel(adminMonth)}</h2></div></div>
+<div class="summary">
+  <div class="stat"><div class="stat-val" style="color:#0277bd;">${monthRes.length}</div><div class="stat-lbl">Total Bookings</div></div>
+  <div class="stat"><div class="stat-val" style="color:#2e7d32;">${appr}</div><div class="stat-lbl">Approved</div></div>
+  <div class="stat"><div class="stat-val" style="color:#e65100;">${pend}</div><div class="stat-lbl">Pending</div></div>
+  <div class="stat"><div class="stat-val" style="color:#2e7d32;">${fmt(totalRev)}</div><div class="stat-lbl">Est. Revenue</div></div>
+  <div class="stat"><div class="stat-val" style="color:#1b5e20;">${fmt(paid)}</div><div class="stat-lbl">Collected</div></div>
+</div>
+<table><thead><tr><th>Date</th><th>Time</th><th>Name</th><th>Phone</th><th>Type</th><th>Hrs</th><th>Amount</th><th>Payment</th><th>Paid</th><th>Status</th></tr></thead>
+<tbody>${rows||"<tr><td colspan='10' style='text-align:center;padding:20px;color:#90a4ae;'>No reservations.</td></tr>"}</tbody></table>
+<div class="ftr">Generated: ${nowStr()} &nbsp;|&nbsp; BFQC Tennis Club &nbsp;|&nbsp; ${CONTACT}</div>
+<script>window.onload=()=>window.print();<\/script></body></html>`;
+  const blob=new Blob([html],{type:"text/html"});const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=`BFQC-Report-${adminMonth}.html`;a.click();URL.revokeObjectURL(url);
+}
+
+// ── BLOCKED DATES ─────────────────────────────────────────────
+function buildBlockedTab(){
+  const list=blockedDates.length===0?emptyCard("No blocked dates set."):
+    [...blockedDates].sort((a,b)=>a.date>b.date?1:-1).map(b=>`
+      <div class="card flex" style="justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;padding:14px 16px;">
+        <div><div style="color:var(--danger);font-weight:bold;font-size:14px;">⛔ ${displayDate(b.date)}</div>
+          <div style="color:var(--text-muted);font-size:12px;margin-top:3px;">${b.reason}</div></div>
+        <button class="btn-outline btn-sm" style="color:var(--green);border-color:var(--green);background:var(--green-light);" onclick="adminUnblock('${b.date}')">✅ Unblock</button>
+      </div>`).join("");
+  return`
+    <div class="card" style="margin-bottom:14px;">
+      <div class="sec-title">Block a Date (Holiday / Maintenance)</div>
+      <div class="field"><label class="field-label">Date</label><input type="date" id="blockDateInput" min="${todayStr()}" value="${todayStr()}"/></div>
+      <div class="field"><label class="field-label">Reason</label><input type="text" id="blockReasonInput" placeholder="e.g. National Holiday"/></div>
+      <div id="blockMsg" style="margin-bottom:10px;font-size:12px;"></div>
+      <button class="btn-danger" style="width:100%;padding:12px;" onclick="adminBlockDate()">⛔ Block This Date</button>
+    </div>${list}`;
+}
+
+async function adminBlockDate(){
+  const date=document.getElementById("blockDateInput").value;
+  const reason=document.getElementById("blockReasonInput").value.trim()||"Unavailable";
+  const msgEl=document.getElementById("blockMsg");
+  if(isDateBlocked(date)){msgEl.innerHTML=`<span style="color:var(--danger);">This date is already blocked.</span>`;return;}
+  try{
+    await apiCall("addBlocked",{date,reason});
+    blockedDates.push({date,reason});
+    msgEl.innerHTML=`<span style="color:var(--green);">✅ ${displayDate(date)} marked as unavailable.</span>`;
+    renderAdmin();
+  }catch(e){msgEl.innerHTML=`<span style="color:var(--danger);">Error: ${e.message}</span>`;}
+}
+
+async function adminUnblock(date){
+  try{
+    await apiCall("deleteBlocked",{date});
+    blockedDates=blockedDates.filter(b=>b.date!==date);
+    showToast("Date unblocked.");renderAdmin();
+  }catch(e){showToast("Error: "+e.message,true);}
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+async function init(){
+  document.getElementById("configBanner")?.remove();
+  await loadData();
+  buildNav();
+  navTo("home");
+  const si=document.getElementById("schedDateInput");
+  if(si)si.value=todayStr();
+}
+init();
+</script>
+</body>
+</html>
