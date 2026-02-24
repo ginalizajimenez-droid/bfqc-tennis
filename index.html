@@ -157,8 +157,8 @@ button:active{opacity:.82;}
       <div class="card" style="margin-bottom:24px;text-align:left;">
         <div class="sec-title">Court Rates (per hour)</div>
         <div class="pricing-grid">
-          <div class="pricing-card" style="background:#e1f5fe;border:1.5px solid #81d4fa;"><div style="font-size:24px;margin-bottom:6px;">🧍</div><div style="font-weight:700;font-size:14px;color:#0277bd;margin-bottom:4px;">Singles</div><div style="font-size:22px;font-weight:700;">&#8369;300</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
-          <div class="pricing-card" style="background:#fff3e0;border:1.5px solid #ffcc80;"><div style="font-size:24px;margin-bottom:6px;">👥</div><div style="font-weight:700;font-size:14px;color:#e65100;margin-bottom:4px;">Doubles</div><div style="font-size:22px;font-weight:700;">&#8369;480</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
+          <div class="pricing-card" style="background:#e1f5fe;border:1.5px solid #81d4fa;"><div style="font-size:24px;margin-bottom:6px;">🧍</div><div style="font-weight:700;font-size:14px;color:#0277bd;margin-bottom:4px;">Singles</div><div style="font-size:22px;font-weight:700;">&#8369;300</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per game</div></div>
+          <div class="pricing-card" style="background:#fff3e0;border:1.5px solid #ffcc80;"><div style="font-size:24px;margin-bottom:6px;">👥</div><div style="font-weight:700;font-size:14px;color:#e65100;margin-bottom:4px;">Doubles</div><div style="font-size:22px;font-weight:700;">&#8369;480</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per game</div></div>
           <div class="pricing-card" style="background:#f3e5f5;border:1.5px solid #ce93d8;"><div style="font-size:24px;margin-bottom:6px;">🎓</div><div style="font-weight:700;font-size:14px;color:#6a1b9a;margin-bottom:4px;">Training</div><div style="font-size:22px;font-weight:700;">&#8369;480</div><div style="color:var(--text-muted);font-size:10px;margin-top:2px;">per hour</div></div>
         </div>
       </div>
@@ -238,7 +238,7 @@ button:active{opacity:.82;}
 // ═══════════════════════════════════════════════════════════════
 //  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QXSJu7EvL5VCXdQ2KCr1Ro34Xov7I3xpY-Ka9NkTjYOPV6r5rSSg1B1I80j6k31E/exec";
+const SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
 // ═══════════════════════════════════════════════════════════════
 
@@ -246,9 +246,9 @@ const ADMIN_PASSWORD = "bfqc2024";
 const CONTACT = "09665340188";
 const TIME_SLOTS = ["6:00 AM","7:00 AM","8:00 AM","9:00 AM","10:00 AM","11:00 AM","12:00 PM","1:00 PM","2:00 PM","3:00 PM","4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM"];
 const TYPES = {
-  Singles:  {color:"#0277bd",bg:"#e1f5fe",border:"#81d4fa",icon:"🧍",price:300},
-  Doubles:  {color:"#e65100",bg:"#fff3e0",border:"#ffcc80",icon:"👥",price:480},
-  Training: {color:"#6a1b9a",bg:"#f3e5f5",border:"#ce93d8",icon:"🎓",price:480},
+  Singles:  {color:"#0277bd",bg:"#e1f5fe",border:"#81d4fa",icon:"🧍",price:300,unit:"game"},
+  Doubles:  {color:"#e65100",bg:"#fff3e0",border:"#ffcc80",icon:"👥",price:480,unit:"game"},
+  Training: {color:"#6a1b9a",bg:"#f3e5f5",border:"#ce93d8",icon:"🎓",price:480,unit:"hour"},
 };
 const PAYMENT_METHODS = {
   gcash: {label:"GCash",     icon:"📱",color:"#0277bd",bg:"#e1f5fe",border:"#81d4fa"},
@@ -275,6 +275,8 @@ function nowStr(){return new Date().toLocaleString("en-PH",{year:"numeric",month
 function slotIdx(s){return TIME_SLOTS.indexOf(s);}
 function endSlotLabel(start,hrs){const i=slotIdx(start)+hrs;return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
 function totalPrice(type,hrs){return TYPES[type].price*hrs;}
+function unitLabel(type,n){const u=TYPES[type].unit;return`${n} ${u}${n>1?'s':''}`;}
+function rateLabel(type){return`${fmt(TYPES[type].price)}/${TYPES[type].unit}`;}
 function fmt(n){return "₱"+Number(n).toLocaleString();}
 function slotToDate(dateStr,slotStr){
   const[y,m,d]=dateStr.split("-").map(Number);
@@ -539,7 +541,7 @@ function buildSuccessHTML(res){
       ${infoRow("Type",`<span class="badge" style="color:${t.color};background:${t.bg};border:1.5px solid ${t.border};">${t.icon} ${res.type}</span>`)}
       ${infoRow("Date",displayDate(res.date))}
       ${infoRow("Time",`${res.startSlot} &ndash; ${endSlotLabel(res.startSlot,res.hours)}`)}
-      ${infoRow("Hours",`${res.hours} hr${res.hours>1?"s":""}`)}
+      ${infoRow("Hours",unitLabel(res.type,res.hours))}
       ${infoRow("Payment",`<span class="badge" style="color:${pm.color};background:${pm.bg};border:1px solid ${pm.border};">${pm.icon} ${pm.label}</span>`)}
       ${infoRow("Total",`<strong style="color:var(--green);font-size:15px;">${fmt(totalPrice(res.type,res.hours))}</strong>`)}
     </div>
@@ -582,7 +584,7 @@ function checkStatus(){
     ${infoRow("Type",`<span class="badge" style="color:${t.color};background:${t.bg};border:1.5px solid ${t.border};">${t.icon} ${found.type}</span>`)}
     ${infoRow("Date",displayDate(found.date))}
     ${infoRow("Time",`${found.startSlot} &ndash; ${endSlotLabel(found.startSlot,found.hours)}`)}
-    ${infoRow("Hours",`${found.hours} hr${found.hours>1?"s":""}`)}
+    ${infoRow("Hours",unitLabel(found.type,found.hours))}
     ${pm?infoRow("Payment",`<span class="badge" style="color:${pm.color};background:${pm.bg};border:1px solid ${pm.border};">${pm.icon} ${pm.label}</span> ${found.paid?'<span style="color:var(--green);font-size:12px;"> ✅ Paid</span>':'<span style="color:var(--warning);font-size:12px;"> ⏳ Unpaid</span>'}`):""}
     ${infoRow("Total",`<strong style="color:var(--green);">${fmt(totalPrice(found.type,found.hours))}</strong>`)}
     ${infoRow("Code",`<strong style="color:var(--green);letter-spacing:4px;">${found.code}</strong>`)}
