@@ -356,20 +356,34 @@ function isConfigured(){return SCRIPT_URL && SCRIPT_URL !== "YOUR_GOOGLE_APPS_SC
 async function apiCall(action, data={}) {
   if(!isConfigured()) throw new Error("Script URL not configured");
 
-  // Google Apps Script requires GET with URL params for cross-origin requests
-  // For read operations use GET, for write operations encode data in URL params
-  const payload = encodeURIComponent(JSON.stringify({action, ...data}));
-  const url = SCRIPT_URL + "?action=" + action + "&payload=" + payload;
-
-  const res = await fetch(url, {
-    method: "GET",
-    redirect: "follow",
-  });
-
-  if(!res.ok) throw new Error("HTTP " + res.status);
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
-  return json;
+  // Use GET for reads, POST via no-cors workaround for writes
+  // Google Apps Script handles both doGet and doPost
+  if(action === "getAll") {
+    // Simple GET for reading data
+    const url = SCRIPT_URL + "?action=getAll";
+    const res = await fetch(url, {method:"GET", redirect:"follow"});
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    if(json.error) throw new Error(json.error);
+    return json;
+  } else {
+    // For write operations: POST with text/plain to avoid CORS preflight
+    // GAS accepts this and returns JSON
+    const body = JSON.stringify({action, ...data});
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain"},
+      body: body,
+      redirect: "follow",
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch(e) { throw new Error("Invalid response from server: " + text.slice(0,100)); }
+    if(json.error) throw new Error(json.error);
+    return json;
+  }
 }
 
 async function loadData(){
