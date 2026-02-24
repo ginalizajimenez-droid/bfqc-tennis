@@ -245,7 +245,7 @@ button:active{opacity:.82;}
 // ═══════════════════════════════════════════════════════════════
 //  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8QXSJu7EvL5VCXdQ2KCr1Ro34Xov7I3xpY-Ka9NkTjYOPV6r5rSSg1B1I80j6k31E/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5JxcLx9tro3nboMXD39qhILgEJ13kq6mzfNTvoaDJjR172Z5EBbdGKKp-4Fuhwtnr/exec";
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
 // ═══════════════════════════════════════════════════════════════
 
@@ -327,8 +327,8 @@ function nowStr(){
   });
 }
 function slotIdx(s){return TIME_SLOTS.indexOf(s);}
-function endSlotLabel(start,hrs){const i=slotIdx(start)+hrs;return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
-function totalPrice(type,hrs){return TYPES[type].price*hrs;}
+function endSlotLabel(start,hrs){const i=slotIdx(start)+Number(hrs);return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
+function totalPrice(type,hrs){return TYPES[type].price*Number(hrs);}
 function unitLabel(type,n){const u=TYPES[type].unit;return`${n} ${u}${n>1?'s':''}`;}
 function rateLabel(type){return`${fmt(TYPES[type].price)}/${TYPES[type].unit}`;}
 function fmt(n){return "₱"+Number(n).toLocaleString();}
@@ -346,7 +346,7 @@ function getWeekStart(d){const day=d.getDay();const dt=new Date(d);dt.setDate(dt
 function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function dateToStr(d){return d.toISOString().split("T")[0];}
 function infoRow(l,v){return`<div class="info-row"><span class="info-lbl">${l}</span><span class="info-val">${v}</span></div>`;}
-function isSlotBooked(date,slot){return reservations.some(r=>{if(r.date!==date)return false;const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});}
+function isSlotBooked(date,slot){return reservations.some(r=>{if(r.date!==date)return false;const si=slotIdx(r.startSlot),ei=si+Number(r.hours),ti=slotIdx(slot);return ti>=si&&ti<ei;});}
 function isDateBlocked(date){return blockedDates.some(b=>b.date===date);}
 function getBlockedInfo(date){return blockedDates.find(b=>b.date===date);}
 
@@ -720,7 +720,7 @@ function renderSchedule(){
   if(tl){
     const dayRes=reservations.filter(r=>r.date===date&&r.status==="approved");
     tl.innerHTML=TIME_SLOTS.map(slot=>{
-      const res=dayRes.find(r=>{const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});
+      const res=dayRes.find(r=>{const si=slotIdx(r.startSlot),ei=si+Number(r.hours),ti=slotIdx(slot);return ti>=si&&ti<ei;});
       const t=res?TYPES[res.type]:null;
       return`<div class="timeline-row"><div class="timeline-slot">${slot}</div>
         <div class="timeline-bar" style="${t?`background:${t.bg};border:1.5px solid ${t.border};`:""}">
@@ -843,14 +843,24 @@ async function refreshScheduleData(){
       ...r,
       id:Number(r.id),
       hours:Number(r.hours),
-      paid:r.paid===true||r.paid==="TRUE"||r.paid==="true",
+      paid:r.paid===true||String(r.paid).toLowerCase()==="true",
+      status:String(r.status||"pending").trim().toLowerCase(),
+      type:String(r.type||"Singles").trim(),
+      paymentMethod:String(r.paymentMethod||"").trim(),
+      startSlot:String(r.startSlot||"").trim(),
+      name:String(r.name||"").trim(),
+      phone:String(r.phone||"").trim(),
+      email:String(r.email||"").trim(),
+      code:String(r.code||"").trim().toUpperCase(),
+      createdAt:String(r.createdAt||"").trim(),
+      approvedAt:String(r.approvedAt||"").trim(),
       date:normalizeDateStr(r.date),
       amountDue:Number(r.amountDue)||0,
       amountPaid:Number(r.amountPaid)||0,
-    }));
+    })).filter(r=>r.id&&r.name);
     blockedDates=data.blockedDates||[];
     buildNav();
-    renderSchedule(); // re-render with fresh data
+    // re-render current view with fresh data data
   }catch(e){
     // fail silently for public users
     console.warn("Schedule refresh failed:", e.message);
@@ -865,11 +875,21 @@ async function refreshData(){
       ...r,
       id:Number(r.id),
       hours:Number(r.hours),
-      paid:r.paid===true||r.paid==="TRUE"||r.paid==="true",
+      paid:r.paid===true||String(r.paid).toLowerCase()==="true",
+      status:String(r.status||"pending").trim().toLowerCase(),
+      type:String(r.type||"Singles").trim(),
+      paymentMethod:String(r.paymentMethod||"").trim(),
+      startSlot:String(r.startSlot||"").trim(),
+      name:String(r.name||"").trim(),
+      phone:String(r.phone||"").trim(),
+      email:String(r.email||"").trim(),
+      code:String(r.code||"").trim().toUpperCase(),
+      createdAt:String(r.createdAt||"").trim(),
+      approvedAt:String(r.approvedAt||"").trim(),
       date:normalizeDateStr(r.date),
       amountDue:Number(r.amountDue)||0,
       amountPaid:Number(r.amountPaid)||0,
-    }));
+    })).filter(r=>r.id&&r.name);
     blockedDates=data.blockedDates||[];
     buildNav();renderAdmin();showToast("Data refreshed!");
   }catch(e){showToast("Refresh failed: "+e.message,true);}
@@ -1004,7 +1024,7 @@ function renderAdminSchedule(){
   // Timeline rows with full details for admin
   const rows = TIME_SLOTS.map(slot => {
     const res = dayRes.find(r => {
-      const si=slotIdx(r.startSlot), ei=si+r.hours, ti=slotIdx(slot);
+      const si=slotIdx(r.startSlot), ei=si+Number(r.hours), ti=slotIdx(slot);
       return ti>=si && ti<ei;
     });
     const t = res ? TYPES[res.type] : null;
@@ -1085,7 +1105,7 @@ function buildWeeklyTab(){
   const rows=TIME_SLOTS.map(slot=>{
     const cells=weekDays.map(d=>{
       const ds=dateToStr(d);
-      const res=reservations.find(r=>{if(r.date!==ds||r.status!=="approved")return false;const si=slotIdx(r.startSlot),ei=si+r.hours,ti=slotIdx(slot);return ti>=si&&ti<ei;});
+      const res=reservations.find(r=>{if(r.date!==ds||r.status!=="approved")return false;const si=slotIdx(r.startSlot),ei=si+Number(r.hours),ti=slotIdx(slot);return ti>=si&&ti<ei;});
       const t=res?TYPES[res.type]:null,bl=isDateBlocked(ds);
       return`<div class="week-cell" style="${bl?"background:#fff5f5;":""}">
         ${t?`<div class="week-event" style="background:${t.bg};color:${t.color};border-left:2px solid ${t.color};">${t.icon}</div>`:""}
