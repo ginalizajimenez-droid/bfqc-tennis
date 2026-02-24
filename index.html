@@ -264,7 +264,7 @@ const PAYMENT_METHODS = {
 const NAV = [{id:"home",label:"🏠 Home"},{id:"book",label:"📅 Book"},{id:"schedule",label:"📋 Schedule"},{id:"check",label:"🔍 My Booking"},{id:"admin",label:"🔑 Admin"}];
 
 // ── State ─────────────────────────────────────────────────────
-let reservations=[], blockedDates=[], currentView="home";
+let reservations=[], blockedDates=[], currentView="home", lastBooking=null;
 let adminLoggedIn=false, adminTab="dashboard";
 let adminMonth=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Manila"}).slice(0,7);
 let bookDate=todayStr(), bookType=null, bookPayment=null, startSlot=null, endSlot=null;
@@ -596,6 +596,7 @@ async function confirmBook(){
     reservations.push(res);
     startSlot=null;endSlot=null;bookType=null;bookPayment=null;
     buildNav();
+    lastBooking=res;
     document.getElementById("bookContent").innerHTML=buildSuccessHTML(res);
   }catch(e){
     showBookError("Failed to save booking. Please try again. ("+e.message+")");
@@ -629,7 +630,7 @@ function buildSuccessHTML(res){
       <div style="color:var(--text-muted);font-size:11px;margin-top:4px;">Use this code to check status or cancel</div>
     </div>
     <div class="flex gap-10" style="justify-content:center;flex-wrap:wrap;">
-      <button class="btn-blue btn-sm" onclick='downloadReceipt(${JSON.stringify(res).replace(/'/g,"&#39;")})'>📄 Download Receipt</button>
+      <button class="btn-blue btn-sm" onclick='downloadReceipt(${res.id})'>📄 Download Receipt</button>
       <button class="btn-outline btn-sm" onclick="navTo('check')">🔍 Check Status</button>
       <button class="btn-outline btn-sm" onclick="renderBook()">Book Another</button>
     </div>
@@ -665,7 +666,7 @@ function checkStatus(){
     ${found.approvedAt?infoRow("Approved",found.approvedAt):""}
     ${cancelNote}
     <div class="divider"></div>
-    <button class="btn-blue" style="width:100%;padding:12px;font-size:13px;" onclick='downloadReceipt(${JSON.stringify(found).replace(/'/g,"&#39;")})'>📄 Download ${approved?"Approved":"Pending"} Receipt</button>
+    <button class="btn-blue" style="width:100%;padding:12px;font-size:13px;" onclick='downloadReceipt(${found.id})'>📄 Download ${approved?"Approved":"Pending"} Receipt</button>
   </div>`;
 }
 
@@ -720,8 +721,11 @@ function renderSchedule(){
 
 // ── RECEIPT ───────────────────────────────────────────────────
 function downloadReceipt(res){
-  if(typeof res==="number") res=reservations.find(r=>r.id===res);
-  if(!res){alert("Not found.");return;}
+  if(typeof res==="number"){
+    // Try reservations array first, fallback to lastBooking
+    res=reservations.find(r=>r.id===res) || (lastBooking&&lastBooking.id===res?lastBooking:null);
+  }
+  if(!res){alert("Receipt not found.");return;}
   const t=TYPES[res.type],approved=res.status==="approved";
   const sc=approved?"#2e7d32":"#e65100",sl=approved?"APPROVED":"PENDING APPROVAL";
   const note=approved?"Your reservation is CONFIRMED. Please present this receipt at the court.":"This receipt is PENDING. Please wait for admin approval.";
@@ -857,7 +861,7 @@ async function refreshData(){
 async function adminApprove(id){
   try{
     await apiCall("updateRes",{id,fields:{status:"approved",approvedAt:nowStr()}});
-    const i=reservations.findIndex(r=>r.id===id);
+    const i=reservations.findIndex(r=>Number(r.id)===Number(id));
     if(i>-1){reservations[i].status="approved";reservations[i].approvedAt=nowStr();}
     showToast("Reservation approved!");buildNav();renderAdmin();
   }catch(e){showToast("Error: "+e.message,true);}
@@ -879,12 +883,14 @@ async function adminDelete(id){
 }
 async function adminMarkPaid(id,paid){
   try{
-    const res=reservations.find(r=>r.id===id);
-    const amountPaid=paid?(res?res.amountDue:0):0;
-    await apiCall("updateRes",{id,fields:{paid, amountPaid}});
-    const i=reservations.findIndex(r=>r.id===id);
+    const numId=Number(id);
+    const res=reservations.find(r=>Number(r.id)===numId);
+    if(!res){showToast("Reservation not found.",true);return;}
+    const amountPaid=paid?(res.amountDue||totalPrice(res.type,res.hours)):0;
+    await apiCall("updateRes",{id:numId,fields:{paid, amountPaid}});
+    const i=reservations.findIndex(r=>Number(r.id)===numId);
     if(i>-1){reservations[i].paid=paid;reservations[i].amountPaid=amountPaid;}
-    showToast(paid?"Marked as paid!":"Marked as unpaid.");renderAdmin();
+    showToast(paid?"Marked as paid! "+fmt(amountPaid):"Marked as unpaid.");renderAdmin();
   }catch(e){showToast("Error: "+e.message,true);}
 }
 
