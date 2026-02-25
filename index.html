@@ -245,7 +245,7 @@ button:active{opacity:.82;}
 // ═══════════════════════════════════════════════════════════════
 //  !! STEP 1: PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BELOW !!
 // ═══════════════════════════════════════════════════════════════
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzv__E7o8DY-BNZ4TGvu59SW6OZrURZ9QrMCuWPZ49lbVb1dcBqkQkTywdWtJVvdweq/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxS9697SIyBxvnfgzmqvX3LAgIZXuNQrDWhuNwcHUZPi6UIdnXCig61rOvVTXZ4wQc/exec";
 // Example: "https://script.google.com/macros/s/AKfycb.../exec"
 // ═══════════════════════════════════════════════════════════════
 
@@ -264,24 +264,26 @@ const PAYMENT_METHODS = {
 const NAV = [{id:"home",label:"🏠 Home"},{id:"book",label:"📅 Book"},{id:"schedule",label:"📋 Schedule"},{id:"check",label:"🔍 My Booking"},{id:"admin",label:"🔑 Admin"}];
 
 // ── State ─────────────────────────────────────────────────────
-let reservations=[], blockedDates=[], currentView="home", lastBooking=null;
-let adminLoggedIn=false, adminTab="dashboard";
-let adminMonth=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit"}).format(new Date()).slice(0,7);
-let bookDate=todayStr(), bookType=null, bookPayment=null, startSlot=null, endSlot=null;
-let weekStart=getWeekStart(new Date());
-let charts={}, isSaving=false;
-
-// ── Helpers ───────────────────────────────────────────────────
-function todayStr(){
-  // Returns today as YYYY-MM-DD in PH timezone
+function phNow(){
+  // Returns a Date object adjusted to PH time (UTC+8)
   const now = new Date();
-  const opts = {timeZone:"Asia/Manila",year:"numeric",month:"2-digit",day:"2-digit"};
-  const parts = new Intl.DateTimeFormat("en-CA",opts).format(now);
-  return parts; // en-CA always gives YYYY-MM-DD
+  const ph = new Date(now.toLocaleString("en-US",{timeZone:"Asia/Manila"}));
+  return ph;
+}
+function todayStr(){
+  // YYYY-MM-DD in PH time
+  const d = phNow();
+  return d.getFullYear()+"-"+
+    String(d.getMonth()+1).padStart(2,"0")+"-"+
+    String(d.getDate()).padStart(2,"0");
 }
 function maxDateStr(){
-  const future = new Date(Date.now()+60*86400000);
-  return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Manila",year:"numeric",month:"2-digit",day:"2-digit"}).format(future);
+  // 60 days from today in PH time
+  const d = phNow();
+  d.setDate(d.getDate()+60);
+  return d.getFullYear()+"-"+
+    String(d.getMonth()+1).padStart(2,"0")+"-"+
+    String(d.getDate()).padStart(2,"0");
 }
 function parseLocalDate(s){
   // Only called with already-normalized YYYY-MM-DD strings
@@ -309,12 +311,25 @@ function normalizeDateStr(s){
 function displayDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});}
 function shortDate(s){return parseLocalDate(s).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"});}
 function genCode(){return Math.random().toString(36).substring(2,8).toUpperCase();}
+
+let reservations=[], blockedDates=[], currentView="home", lastBooking=null;
+let adminLoggedIn=false, adminTab="dashboard";
+let adminMonth=todayStr().slice(0,7);
+let bookDate=todayStr(), bookType=null, bookPayment=null, startSlot=null, endSlot=null;
+let weekStart=getWeekStart(new Date());
+let charts={}, isSaving=false;
+
+// ── Helpers ───────────────────────────────────────────────────
+
 function nowStr(){
-  // Returns PH time as readable string e.g. "Feb 25, 2026, 10:30 AM"
-  const now = new Date();
-  const opts = {timeZone:"Asia/Manila",year:"numeric",month:"short",
-    day:"numeric",hour:"2-digit",minute:"2-digit",hour12:true};
-  return now.toLocaleString("en-US", opts);
+  // Returns PH time as "Feb 25, 2026 10:30 AM"
+  const d = phNow();
+  const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let h = d.getHours(), min = d.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return months[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear()+" "+
+    h+":"+String(min).padStart(2,"0")+" "+ampm;
 }
 function slotIdx(s){return TIME_SLOTS.indexOf(s);}
 function endSlotLabel(start,hrs){const i=slotIdx(start)+Number(hrs);return i<TIME_SLOTS.length?TIME_SLOTS[i]:"10:00 PM";}
